@@ -94,7 +94,7 @@ const moderateReviewFlow = ai.defineFlow(
         if (!output) {
             throw new GenkitError({
                 source: 'moderateReviewFlow',
-                status: 'unavailable',
+                status: 'UNAVAILABLE',
                 message: 'A IA não conseguiu gerar uma resposta. A resposta estava vazia.',
             });
         }
