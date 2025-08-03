@@ -96,7 +96,6 @@ export default async function TeachersPage() {
 
         <TeacherListClient 
           initialTeachers={sortedTeachers} 
-          allSubjectNames={allSubjectNames}
         />
 
         <footer className="text-center mt-16 pb-8 space-y-2">
