@@ -3,6 +3,9 @@
 
 import * as DataService from '@/lib/data-service';
 import { revalidatePath } from 'next/cache';
+import type { ModerateReviewInput, ModerateReviewOutput } from '@/ai/flows/moderate-review-flow';
+import { moderateReview as moderateReviewFlow } from '@/ai/flows/moderate-review-flow';
+
 
 // Local moderation based on a word blocklist
 function localModerateReview(text: string): { isAppropriate: boolean; reason?: string } {
@@ -125,4 +128,12 @@ export async function handleRequest(data: { professorName: string; email: string
         const errorMessage = error instanceof Error ? error.message : "Não foi possível enviar sua solicitação. Tente novamente mais tarde.";
         return { success: false, message: errorMessage };
     }
+}
+
+/**
+ * Server action to call the AI moderation flow.
+ * This wraps the imported flow function in an async function to comply with "use server" requirements.
+ */
+export async function moderateReview(input: ModerateReviewInput): Promise<ModerateReviewOutput> {
+    return moderateReviewFlow(input);
 }
