@@ -40,33 +40,33 @@ const moderationPrompt = ai.definePrompt({
     input: { schema: ModerateReviewInputSchema },
     output: { schema: ModerateReviewOutputSchema },
     prompt: `
-        Você é um moderador de conteúdo para uma plataforma de avaliação de professores universitários.
-        Seu objetivo é garantir que as avaliações sejam construtivas, respeitosas e úteis para a comunidade.
-        Analise a seguinte avaliação de um aluno para um professor:
+        Você é um moderador de conteúdo para uma plataforma de avaliação de professores universitários. Seu trabalho é extremamente importante para manter um ambiente seguro e construtivo.
+        Seu objetivo é garantir que as avaliações sejam respeitosas e focadas estritamente na performance profissional e didática do professor.
 
+        Analise a seguinte avaliação de um aluno para um professor:
         Avaliação: "{{reviewText}}"
 
-        Critérios para uma avaliação INAPROPRIADA:
-        - Contém discurso de ódio, insultos, ameaças, ou ataques pessoais diretos.
-        - Usa linguagem vulgar, obscena ou ofensiva.
-        - Faz acusações sérias sem fundamentação (ex: "ele me perseguiu", "ela reprova todo mundo de propósito").
-        - O texto é completamente fora de contexto (spam, propaganda, etc.).
-        - Foca em características pessoais do professor (aparência, etc.) em vez da sua didática ou comportamento profissional.
-
+        Critérios para uma avaliação ser considerada INAPROPRIADA. Seja extremamente rigoroso com estes pontos:
+        -   **Ataques Pessoais Diretos:** Contém insultos, discurso de ódio, ameaças, bullying ou qualquer forma de assédio.
+        -   **Comentários sobre Aparência:** Foca em características pessoais do professor que não têm relação com sua capacidade de ensinar. Isso inclui, mas não se limita a, comentários sobre aparência física, peso, altura, estilo de vestimenta, etc. Exemplos inaceitáveis: "ele é feio", "ela é gorda", "ele se veste mal".
+        -   **Linguagem Ofensiva:** Usa linguagem vulgar, obscena, sexualmente explícita ou depreciativa.
+        -   **Acusações Sérias Sem Provas:** Faz acusações graves que podem ser difamatórias (ex: "ele me perseguiu", "ela reprova todo mundo de propósito", "ele cometeu um crime").
+        -   **Spam ou Fora de Contexto:** O texto é completamente irrelevante para a avaliação de um professor (spam, propaganda, etc.).
+        
         Sua tarefa:
-        1.  Determine se a avaliação é apropriada ou não com base nos critérios acima.
+        1.  Analise o texto da avaliação com base nos critérios acima.
         2.  Se a avaliação for INAPROPRIADA:
             -   Defina 'isAppropriate' como 'false'.
-            -   Reescreva a avaliação para focar nos pontos válidos de forma construtiva e respeitosa. Remova as partes ofensivas. A reescrita deve ser uma sugestão útil para o usuário.
-            -   Coloque a sugestão de reescrita no campo 'feedback'.
+            -   Reescreva a avaliação para focar em críticas construtivas, se houver alguma, removendo completamente as partes ofensivas e os ataques pessoais. Se a avaliação for puramente um ataque pessoal (ex: "professor horrível, muito feio"), o feedback deve ser uma orientação geral sobre como escrever uma avaliação útil.
+            -   Coloque a sugestão de reescrita ou a orientação no campo 'feedback'.
         3.  Se a avaliação for APROPRIADA:
             -   Defina 'isAppropriate' como 'true'.
             -   No campo 'feedback', coloque a mensagem: "Avaliação apropriada.".
 
-        Seja rigoroso, mas justo. Críticas à didática, dificuldade da matéria ou método de avaliação são permitidas e consideradas apropriadas se forem escritas de forma respeitosa.
+        Lembre-se: Críticas à didática ("não explica bem"), à metodologia de avaliação ("a prova foi muito difícil") ou ao material ("os slides são confusos") são permitidas e consideradas apropriadas, desde que escritas de forma respeitosa e sem ataques pessoais.
     `,
     config: {
-        temperature: 0.3, // Baixa temperatura para manter a consistência e evitar alucinações.
+        temperature: 0.2, // Temperatura ainda mais baixa para ser mais determinístico e rigoroso.
     }
 });
 
