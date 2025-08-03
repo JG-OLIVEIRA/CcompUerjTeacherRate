@@ -3,57 +3,21 @@
 
 import * as DataService from '@/lib/data-service';
 import { revalidatePath } from 'next/cache';
-import type { ModerateReviewInput, ModerateReviewOutput } from '@/ai/flows/moderate-review-flow';
-import { moderateReview as moderateReviewFlow } from '@/ai/flows/moderate-review-flow';
-import { GenkitError } from 'genkit';
-
 
 /**
  * Server action to handle form submission for adding a teacher or review.
- * It now performs AI moderation before saving the data.
  * Returns an object indicating success or failure.
  */
 export async function handleAddTeacherOrReview(data: {
     teacherName: string;
-    subjectNames: string[]; 
+    subjectNames: string[];
     reviewText?: string;
     reviewRating: number;
 }): Promise<{ success: boolean; message: string; }> {
-    const reviewText = data.reviewText || '';
-    
-    // Server-side moderation step is only required if there is text to moderate.
-    if (reviewText.trim().length > 0) {
-        try {
-            const moderationResult = await moderateReviewFlow({ reviewText });
-            if (!moderationResult.isAppropriate) {
-                // Return the feedback from the AI as the error message
-                return { 
-                    success: false, 
-                    message: moderationResult.feedback
-                };
-            }
-        } catch (error) {
-            console.error("AI Moderation Error:", error);
-            // If it's a GenkitError, it might contain specific feedback.
-            if (error instanceof GenkitError) {
-                 return { 
-                    success: false, 
-                    message: `Sua avaliação foi bloqueada: ${error.message}` 
-                };
-            }
-            // Fallback for other types of errors.
-            return { 
-                success: false, 
-                message: "Não foi possível analisar sua avaliação. Por favor, tente novamente mais tarde." 
-            };
-        }
-    }
-
-    // Proceed to save the data if moderation passes or is not required
     try {
         await DataService.addTeacherOrReview({
             ...data,
-            reviewText: reviewText,
+            reviewText: data.reviewText || '',
         });
         revalidatePath('/'); // Revalidate main page and subjects
         revalidatePath('/subjects');
