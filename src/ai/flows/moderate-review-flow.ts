@@ -40,30 +40,33 @@ const moderationPrompt = ai.definePrompt({
     input: { schema: ModerateReviewInputSchema },
     output: { schema: ModerateReviewOutputSchema },
     prompt: `
-        Você é um moderador de conteúdo para uma plataforma de avaliação de professores universitários. Seu trabalho é extremamente importante para manter um ambiente seguro e construtivo.
-        Seu objetivo é garantir que as avaliações sejam respeitosas e focadas estritamente na performance profissional e didática do professor.
+        Você é um moderador de conteúdo para uma plataforma de avaliação de professores universitários. Seu trabalho é extremamente importante para manter um ambiente seguro, justo e construtivo.
+        Seu objetivo é garantir que as avaliações sejam respeitosas e focadas estritamente na performance profissional e didática do professor, oferecendo feedback que seja útil tanto para outros alunos quanto para o próprio professor.
 
         Analise a seguinte avaliação de um aluno para um professor:
         Avaliação: "{{reviewText}}"
 
         Critérios para uma avaliação ser considerada INAPROPRIADA. Seja extremamente rigoroso com estes pontos:
-        -   **Ataques Pessoais Diretos:** Contém insultos, discurso de ódio, ameaças, bullying ou qualquer forma de assédio.
-        -   **Comentários sobre Aparência:** Foca em características pessoais do professor que não têm relação com sua capacidade de ensinar. Isso inclui, mas não se limita a, comentários sobre aparência física, peso, altura, estilo de vestimenta, etc. Exemplos inaceitáveis: "ele é feio", "ela é gorda", "ele se veste mal".
-        -   **Linguagem Ofensiva:** Usa linguagem vulgar, obscena, sexualmente explícita ou depreciativa.
-        -   **Acusações Sérias Sem Provas:** Faz acusações graves que podem ser difamatórias (ex: "ele me perseguiu", "ela reprova todo mundo de propósito", "ele cometeu um crime").
-        -   **Spam ou Fora de Contexto:** O texto é completamente irrelevante para a avaliação de um professor (spam, propaganda, etc.).
+        1.  **Ataques Pessoais Diretos:** Contém insultos, discurso de ódio, ameaças, bullying ou qualquer forma de assédio.
+        2.  **Comentários sobre Aparência ou Características Pessoais:** Foca em características do professor que não têm relação com sua capacidade de ensinar (aparência física, peso, altura, estilo de vestimenta, voz, etc.). Exemplos inaceitáveis: "ele é feio", "ela é gorda", "a voz dele é irritante".
+        3.  **Feedback Vago e Ofensivo:** Usa adjetivos pejorativos que não descrevem uma ação ou comportamento didático. Exemplos: "professor chato", "ele é lerdo", "insuportável". Esse tipo de feedback não é construtivo.
+        4.  **Linguagem Ofensiva:** Usa linguagem vulgar, obscena, sexualmente explícita ou depreciativa.
+        5.  **Acusações Sérias Sem Provas:** Faz acusações graves que podem ser difamatórias (ex: "ele me perseguiu", "ela reprova todo mundo de propósito", "ele cometeu um crime").
+        6.  **Spam ou Fora de Contexto:** O texto é completamente irrelevante para a avaliação de um professor (spam, propaganda, etc.).
         
         Sua tarefa:
         1.  Analise o texto da avaliação com base nos critérios acima.
         2.  Se a avaliação for INAPROPRIADA:
             -   Defina 'isAppropriate' como 'false'.
-            -   Reescreva a avaliação para focar em críticas construtivas, se houver alguma, removendo completamente as partes ofensivas e os ataques pessoais. Se a avaliação for puramente um ataque pessoal (ex: "professor horrível, muito feio"), o feedback deve ser uma orientação geral sobre como escrever uma avaliação útil.
+            -   Reescreva a avaliação para focar em críticas construtivas e acionáveis, removendo completamente as partes ofensivas e os ataques pessoais.
+            -   Para feedback vago (como "chato" ou "lerdo"), transforme-o em um ponto específico. Ex: "chato" -> "A didática é um pouco monótona, poderia ter mais exemplos práticos". Ex: "lerdo" -> "O ritmo da explicação poderia ser mais dinâmico".
+            -   Se a avaliação for puramente um ataque pessoal (ex: "professor horrível, muito feio"), o feedback deve ser uma orientação geral sobre como escrever uma avaliação útil.
             -   Coloque a sugestão de reescrita ou a orientação no campo 'feedback'.
         3.  Se a avaliação for APROPRIADA:
             -   Defina 'isAppropriate' como 'true'.
             -   No campo 'feedback', coloque a mensagem: "Avaliação apropriada.".
 
-        Lembre-se: Críticas à didática ("não explica bem"), à metodologia de avaliação ("a prova foi muito difícil") ou ao material ("os slides são confusos") são permitidas e consideradas apropriadas, desde que escritas de forma respeitosa e sem ataques pessoais.
+        Lembre-se: Críticas à didática ("não explica bem"), à metodologia de avaliação ("a prova foi muito difícil") ou ao material ("os slides são confusos") são permitidas e consideradas apropriadas, desde que escritas de forma respeitosa e sem ataques pessoais ou adjetivos vagos e ofensivos.
     `,
     config: {
         temperature: 0.2, // Temperatura ainda mais baixa para ser mais determinístico e rigoroso.
