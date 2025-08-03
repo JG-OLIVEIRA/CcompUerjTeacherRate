@@ -21,8 +21,8 @@ const StatCard = ({
 }: {
     icon: React.ElementType,
     title: string,
-    value: number,
-    note: string,
+    value: string | number,
+    note?: string,
     iconColorClass?: string,
 }) => (
     <Card className="bg-card/50">
@@ -32,7 +32,7 @@ const StatCard = ({
         </CardHeader>
         <CardContent>
             <div className="text-2xl font-bold">{value}</div>
-            <p className="text-xs text-muted-foreground">{note}</p>
+            {note && <p className="text-xs text-muted-foreground">{note}</p>}
         </CardContent>
     </Card>
 );
@@ -56,11 +56,12 @@ export default function StatsCards({ stats }: StatsCardsProps) {
             />
             <StatCard
                 icon={TrendingUp}
-                title="Novas Avaliações"
-                value={stats.newReviewsThisWeek}
-                note={`+${stats.newReviewsThisWeek} na última semana`}
-                iconColorClass="text-emerald-500"
+                title="Novas na Semana"
+                value={`+${stats.newReviewsThisWeek}`}
+                note="Avaliações recentes"
+                iconColorClass="text-primary"
             />
         </div>
     );
 }
+
