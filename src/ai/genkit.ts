@@ -1,6 +1,6 @@
 
 // src/ai/genkit.ts
-import { genkit, type GenkitErrorCode, type GenkitError } from 'genkit';
+import { genkit, type GenkitError } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 
 // Configure Genkit with the Google AI plugin
