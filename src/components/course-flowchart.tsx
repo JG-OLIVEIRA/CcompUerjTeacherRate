@@ -16,40 +16,7 @@ const flowchartData = [
     { semester: 8, subjects: ["Eletiva II", "Eletiva III", "Projeto Final", "Sistemas Distribuídos", "Eletiva IV"] },
 ];
 
-export const prerequisites: { [subject: string]: string[] } = {
-  "Álgebra Linear": ["Geometria Analítica"],
-  "Cálculo II": ["Cálculo I"],
-  "Cálculo das Probabilidades": ["Álgebra"],
-  "Algoritmos e Est. de Dados I": ["Matemática Discreta", "Fundamentos da Computação"],
-  "Linguagem de Programação I": ["Fundamentos da Computação"],
-  "Cálculo III": ["Cálculo II"],
-  "Algoritmos e Est. de Dados II": ["Cálculo das Probabilidades", "Algoritmos e Est. de Dados I"],
-  "Linguagem de Programação II": ["Linguagem de Programação I"],
-  "Teoria da Computação": ["Linguagem de Programação I"],
-  "Cálculo Numérico": ["Cálculo II"],
-  "Cálculo IV": ["Cálculo III"],
-  "Algoritmos em Grafos": ["Algoritmos e Est. de Dados II"],
-  "Engenharia de Software": ["Algoritmos e Est. de Dados II"],
-  "Arquitetura de Computadores I": ["Linguagem de Programação II"],
-  "Física II": ["Física I", "Teoria da Computação"],
-  "Estruturas de Linguagens": ["Cálculo Numérico"],
-  "Banco de Dados I": ["Algoritmos em Grafos"],
-  "Otimização em Grafos": ["Algoritmos em Grafos"],
-  "Análise e Proj. de Sistemas": ["Engenharia de Software"],
-  "Sistemas Operacionais I": ["Arquitetura de Computadores I"],
-  "Arquitetura de Computadores II": ["Arquitetura de Computadores I"],
-  "Otimização Combinatória": ["Estruturas de Linguagens"],
-  "Banco de Dados II": ["Banco de Dados I"],
-  "Interfaces Humano-Comp.": ["Otimização em Grafos", "Análise e Proj. de Sistemas"],
-  "Sistemas Operacionais II": ["Sistemas Operacionais I"],
-  "Compiladores": ["Arquitetura de Computadores II"],
-  "Computação Gráfica": ["Otimização Combinatória"],
-  "Inteligência Artificial": ["Banco de Dados II"],
-  "Redes de Computadores I": ["Sistemas Operacionais II"],
-  "Arq. Avançadas de Computadores": ["Compiladores"],
-  "Projeto Final": ["Metod. Cient. no Projeto Final"],
-  "Sistemas Distribuídos": ["Redes de Computadores I"],
-};
+export const prerequisites: { [subject: string]: string[] } = {};
 
 
 const LOCAL_STORAGE_KEY = 'completedSubjects';
