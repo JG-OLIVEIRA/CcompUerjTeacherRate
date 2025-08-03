@@ -16,6 +16,12 @@ import {
 } from "@/components/ui/breadcrumb"
 import type { Teacher, Review } from '@/lib/types';
 
+interface SubjectProfilePageProps {
+  params: {
+    subjectId: string;
+  };
+}
+
 // Função corrigida para calcular a média de avaliação
 const calculateAverageRating = (reviews: Review[]): number => {
     if (!reviews || reviews.length === 0) return 0;
@@ -26,7 +32,7 @@ const calculateAverageRating = (reviews: Review[]): number => {
 };
 
 // Componente de página com a tipagem corrigida
-export default async function SubjectProfilePage({ params }: { params: { subjectId: string } }) {
+export default async function SubjectProfilePage({ params }: SubjectProfilePageProps) {
   const subjectId = parseInt(params.subjectId, 10);
   if (isNaN(subjectId)) {
     notFound();

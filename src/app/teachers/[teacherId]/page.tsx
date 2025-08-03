@@ -15,7 +15,13 @@ import { AddTeacherOrReviewDialog } from '@/components/add-teacher-or-review-dia
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default async function TeacherProfilePage({ params }: { params: { teacherId: string } }) {
+interface TeacherProfilePageProps {
+  params: {
+    teacherId: string;
+  };
+}
+
+export default async function TeacherProfilePage({ params }: TeacherProfilePageProps) {
   const teacherId = parseInt(params.teacherId, 10);
   if (isNaN(teacherId)) {
     notFound();
