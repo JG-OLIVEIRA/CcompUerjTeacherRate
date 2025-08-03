@@ -214,7 +214,7 @@ export async function reportReview(reviewId: number): Promise<void> {
             [reviewId]
         );
         
-        // If report_count reaches 2, set reported to true
+        // If report_count reaches 2, set reported to true to hide it
         if (result.rows[0].report_count >= 2) {
              await client.query(
                 'UPDATE reviews SET reported = true WHERE id = $1',

@@ -111,7 +111,7 @@ export default function ModerationClient({ initialReviews }: ModerationClientPro
             <CardHeader>
                 <CardTitle>Avaliação Denunciada</CardTitle>
                 <CardDescription>
-                    A avaliação a seguir foi denunciada por ({review.report_count}) usuários. Por favor, analise o conteúdo e vote se ele deve ser removido.
+                    A avaliação a seguir foi denunciada ({review.report_count}) vezes e está oculta. Analise e vote para decidir se ela deve ser removida permanentemente.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
