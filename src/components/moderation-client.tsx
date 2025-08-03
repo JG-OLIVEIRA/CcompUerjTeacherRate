@@ -139,8 +139,7 @@ export default function ModerationClient({ initialReviews }: ModerationClientPro
             </CardContent>
             <CardFooter className="flex justify-end gap-3">
                 <Button 
-                    variant="outline"
-                    className="border-green-500 text-green-500 hover:bg-green-500/10 hover:text-green-600"
+                    variant="success"
                     onClick={() => handleVote(review.id, 'reject')} 
                     disabled={isPending || hasVoted}
                     title={hasVoted ? "Você já votou nesta avaliação" : "Votar para manter esta avaliação"}
