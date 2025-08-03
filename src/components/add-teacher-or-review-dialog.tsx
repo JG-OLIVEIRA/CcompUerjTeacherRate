@@ -143,12 +143,13 @@ export function AddTeacherOrReviewDialog({
   useEffect(() => {
     if (selectedTeacher) {
       const existingSubjectsForTeacher = Array.from(selectedTeacher.subjects || []);
-      form.setValue('subjectNames', initialTeacherName ? existingSubjectsForTeacher : [], { shouldValidate: true });
+      // Always pre-fill subjects if a teacher is selected
+      form.setValue('subjectNames', existingSubjectsForTeacher, { shouldValidate: true });
     } else {
         // If teacher is cleared, clear subjects
         form.setValue('subjectNames', [], { shouldValidate: true });
     }
-  }, [selectedTeacher, form, initialTeacherName]);
+  }, [selectedTeacher, form]);
 
   const sendReview = async (values: FormValues) => {
     try {
