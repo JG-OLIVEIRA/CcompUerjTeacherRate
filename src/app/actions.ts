@@ -109,6 +109,7 @@ export async function getAllTeachers() {
 export async function approveReportedReview(reviewId: number) {
     await DataService.approveReport(reviewId);
     revalidatePath('/moderation');
+    revalidatePath('/'); // Revalidate home page to update recent reviews
 }
 
 /**
