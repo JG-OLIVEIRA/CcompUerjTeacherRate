@@ -59,11 +59,6 @@ export default async function TeacherProfilePage({ params }: TeacherProfilePageP
   );
 
   const sortedReviews = (teacher.reviews || []).sort((a, b) => {
-    const voteBalanceA = (a.upvotes || 0) - (a.downvotes || 0);
-    const voteBalanceB = (b.upvotes || 0) - (b.downvotes || 0);
-     if (voteBalanceB !== voteBalanceA) {
-      return voteBalanceB - voteBalanceA;
-    }
     if (!a.createdAt || !b.createdAt) return 0;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
