@@ -11,6 +11,8 @@ import WelcomeReviewHandler from '@/components/welcome-review-handler';
 import RecentReviews from '@/components/recent-reviews';
 import { Separator } from '@/components/ui/separator';
 
+export const dynamic = 'force-dynamic';
+
 export default async function TeachersPage() {
   // Fetch all data in parallel
   const [teachers, recentReviews] = await Promise.all([
