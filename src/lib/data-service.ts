@@ -558,3 +558,33 @@ export async function getSubjectById(subjectId: number): Promise<{
         client.release();
     }
 }
+
+export async function getPlatformStats(): Promise<{ totalTeachers: number; totalReviews: number; newReviewsThisWeek: number; }> {
+    const client = await pool.connect();
+    try {
+        const teachersQuery = client.query('SELECT COUNT(*) as count FROM teachers;');
+        const reviewsQuery = client.query('SELECT COUNT(*) as count FROM reviews WHERE reported = false;');
+        const weeklyReviewsQuery = client.query(`
+            SELECT COUNT(*) as count 
+            FROM reviews 
+            WHERE reported = false AND created_at >= NOW() - interval '7 days';
+        `);
+
+        const [teachersResult, reviewsResult, weeklyReviewsResult] = await Promise.all([
+            teachersQuery,
+            reviewsQuery,
+            weeklyReviewsQuery
+        ]);
+
+        return {
+            totalTeachers: parseInt(teachersResult.rows[0].count, 10),
+            totalReviews: parseInt(reviewsResult.rows[0].count, 10),
+            newReviewsThisWeek: parseInt(weeklyReviewsResult.rows[0].count, 10),
+        };
+    } catch (error) {
+        console.error("Erro ao buscar estatísticas da plataforma:", error);
+        return { totalTeachers: 0, totalReviews: 0, newReviewsThisWeek: 0 };
+    } finally {
+        client.release();
+    }
+}

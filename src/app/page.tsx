@@ -1,7 +1,7 @@
 
 import { BookOpen, Megaphone, ShieldCheck, MessageSquareQuote } from 'lucide-react';
 import Link from 'next/link';
-import { getTeachersWithGlobalStats, getRecentReviews } from '@/lib/data-service';
+import { getTeachersWithGlobalStats, getRecentReviews, getPlatformStats } from '@/lib/data-service';
 import { Button } from '@/components/ui/button';
 import { AddTeacherOrReviewDialog } from '@/components/add-teacher-or-review-dialog';
 import { handleAddTeacherOrReview } from './actions';
@@ -10,14 +10,16 @@ import MainLayout from '@/components/main-layout';
 import WelcomeReviewHandler from '@/components/welcome-review-handler';
 import RecentReviews from '@/components/recent-reviews';
 import { Separator } from '@/components/ui/separator';
+import StatsCards from '@/components/stats-cards';
 
 export const dynamic = 'force-dynamic';
 
 export default async function TeachersPage() {
   // Fetch all data in parallel
-  const [teachers, recentReviews] = await Promise.all([
+  const [teachers, recentReviews, stats] = await Promise.all([
     getTeachersWithGlobalStats(),
-    getRecentReviews()
+    getRecentReviews(),
+    getPlatformStats(),
   ]);
   
   // Get all unique subject names from the teachers list
@@ -81,8 +83,11 @@ export default async function TeachersPage() {
       />
       <div className="container mx-auto px-4 py-8">
         
+        <StatsCards stats={stats} />
+
         {recentReviews.length > 0 && (
           <>
+            <Separator className="my-12"/>
             <div className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <MessageSquareQuote className="h-7 w-7 text-primary" />
@@ -92,9 +97,10 @@ export default async function TeachersPage() {
               </div>
               <RecentReviews initialReviews={recentReviews} />
             </div>
-            <Separator className="my-12"/>
           </>
         )}
+        
+        <Separator className="my-12"/>
 
         <TeacherListClient 
           initialTeachers={sortedTeachers} 
