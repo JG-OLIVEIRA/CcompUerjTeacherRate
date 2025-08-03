@@ -52,7 +52,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
                 title="Avaliações"
                 value={stats.totalReviews}
                 note="Feedbacks de alunos"
-                iconColorClass="text-amber-500"
+                iconColorClass="text-primary"
             />
             <StatCard
                 icon={TrendingUp}
@@ -64,4 +64,3 @@ export default function StatsCards({ stats }: StatsCardsProps) {
         </div>
     );
 }
-
