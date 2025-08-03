@@ -24,8 +24,7 @@ export default function Header({ pageTitle, pageIconName, children }: HeaderProp
     
   return (
     <header 
-        className="w-full border-b bg-background relative bg-cover bg-center bg-no-repeat"
-        style={{backgroundImage: `url(https://storage.googleapis.com/datsal-latam-dev-f9z9.appspot.com/b95b4a46-86c3-4339-b9d9-2b8e3a8c1605.png)`}}
+        className="w-full border-b bg-background relative"
     >
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
         <div className="container mx-auto px-4 relative z-10">
