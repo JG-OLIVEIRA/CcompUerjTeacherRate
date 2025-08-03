@@ -81,28 +81,16 @@ const moderateReviewFlow = ai.defineFlow(
     outputSchema: ModerateReviewOutputSchema,
   },
   async (input) => {
-    try {
-        const { output } = await moderationPrompt(input);
-        
-        if (!output) {
-            throw new GenkitError({
-                source: 'moderateReviewFlow',
-                status: 'UNAVAILABLE',
-                message: 'A IA não conseguiu gerar uma resposta. A resposta estava vazia.',
-            });
-        }
-        
-        return output;
-
-    } catch (error) {
-        console.error('[moderateReviewFlow] Erro durante a moderação com IA:', error);
-        
-        // Em caso de erro com a API da IA, é mais seguro bloquear a postagem.
+    const { output } = await moderationPrompt(input);
+    
+    if (!output) {
         throw new GenkitError({
             source: 'moderateReviewFlow',
-            status: 'INTERNAL',
-            message: 'Ocorreu um erro no serviço de moderação. Tente novamente mais tarde.',
+            status: 'UNAVAILABLE',
+            message: 'A IA não conseguiu gerar uma resposta. A resposta estava vazia.',
         });
     }
+    
+    return output;
   }
 );
