@@ -568,10 +568,13 @@ export async function getPlatformStats(): Promise<{ totalTeachers: number; total
     try {
         const teachersQuery = client.query('SELECT COUNT(*) as count FROM teachers;');
         const reviewsQuery = client.query('SELECT COUNT(*) as count FROM reviews WHERE reported = false;');
+        // This query correctly calculates the start of the week as Sunday.
         const weeklyReviewsQuery = client.query(`
             SELECT COUNT(*) as count 
             FROM reviews 
-            WHERE reported = false AND created_at >= NOW() - interval '7 days';
+            WHERE 
+                reported = false AND 
+                created_at >= date_trunc('week', NOW() AT TIME ZONE 'UTC' - interval '1 day') + interval '1 day';
         `);
 
         const [teachersResult, reviewsResult, weeklyReviewsResult] = await Promise.all([
