@@ -5,17 +5,19 @@ import { useState, useTransition, useEffect } from 'react';
 import type { Review } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { User, Tag, Calendar, Quote, ShieldAlert, ThumbsUp } from 'lucide-react';
-import { approveReportedReview } from '@/app/actions';
+import { User, Tag, Calendar, Quote, ShieldAlert, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { approveReportedReview, rejectReportedReview } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from './ui/badge';
 import StarRating from './star-rating';
+import { cn } from '@/lib/utils';
 
 interface ModerationClientProps {
   initialReviews: Review[];
 }
 
 const DELETION_THRESHOLD = 5;
+const VISIBILITY_THRESHOLD = 2;
 const VOTED_REVIEWS_KEY = 'votedReviews';
 
 export default function ModerationClient({ initialReviews }: ModerationClientProps) {
@@ -25,7 +27,6 @@ export default function ModerationClient({ initialReviews }: ModerationClientPro
   const { toast } = useToast();
 
   useEffect(() => {
-    // This runs only on the client, after hydration
     try {
       const voted = localStorage.getItem(VOTED_REVIEWS_KEY);
       if (voted) {
@@ -46,38 +47,41 @@ export default function ModerationClient({ initialReviews }: ModerationClientPro
     }
   };
 
-
-  const handleRemoveVote = (reviewId: number) => {
+  const handleVote = (reviewId: number, action: 'approve' | 'reject') => {
     if (votedReviewIds.includes(reviewId)) {
-      toast({
-        variant: 'destructive',
-        title: 'Voto já registrado',
-        description: 'Você já participou da moderação desta avaliação nesta sessão.',
-      });
-      return;
+        toast({
+            variant: 'destructive',
+            title: 'Voto já registrado',
+            description: 'Você já participou da moderação desta avaliação nesta sessão.',
+        });
+        return;
     }
-
+    
     startTransition(async () => {
-      try {
-        await approveReportedReview(reviewId);
-        
-        addVotedReviewId(reviewId);
-        // Optimistically remove the review from the UI
-        setReviews(prev => prev.filter(r => r.id !== reviewId));
+        try {
+            if (action === 'approve') {
+                await approveReportedReview(reviewId);
+            } else {
+                await rejectReportedReview(reviewId);
+            }
+            
+            addVotedReviewId(reviewId);
+            // Optimistically remove the review from the moderation UI
+            setReviews(prev => prev.filter(r => r.id !== reviewId));
 
-        toast({
-          title: 'Voto registrado!',
-          description: `Obrigado por ajudar a moderar a comunidade.`,
-        });
+            toast({
+                title: 'Voto registrado!',
+                description: 'Obrigado por ajudar a moderar a comunidade.',
+            });
 
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Ocorreu um erro desconhecido.";
-        toast({
-            variant: "destructive",
-            title: "Erro ao registrar voto",
-            description: errorMessage,
-        });
-      }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Ocorreu um erro desconhecido.";
+            toast({
+                variant: "destructive",
+                title: "Erro ao registrar voto",
+                description: errorMessage,
+            });
+        }
     });
   };
 
@@ -111,7 +115,7 @@ export default function ModerationClient({ initialReviews }: ModerationClientPro
             <CardHeader>
                 <CardTitle>Avaliação Denunciada</CardTitle>
                 <CardDescription>
-                    A avaliação a seguir foi denunciada ({review.report_count}) vezes e está oculta. Analise e vote para decidir se ela deve ser removida permanentemente.
+                    A avaliação a seguir foi denunciada ({review.report_count}) vezes. Se atingir {DELETION_THRESHOLD} votos, será removida. Se os votos para manter forem suficientes para baixar a contagem de denúncias para menos de {VISIBILITY_THRESHOLD}, ela voltará a ser pública.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -119,7 +123,7 @@ export default function ModerationClient({ initialReviews }: ModerationClientPro
                     <div className="flex justify-between items-center mb-2">
                         <StarRating rating={review.rating} />
                         <Badge variant="destructive">
-                            {review.report_count} / {DELETION_THRESHOLD} votos para remoção
+                            {review.report_count} denúncias
                         </Badge>
                     </div>
                     <blockquote className="border-l-4 border-primary pl-4 italic my-2">
@@ -135,13 +139,23 @@ export default function ModerationClient({ initialReviews }: ModerationClientPro
             </CardContent>
             <CardFooter className="flex justify-end gap-3">
                 <Button 
+                    variant="outline"
+                    className="border-green-500 text-green-500 hover:bg-green-500/10 hover:text-green-600"
+                    onClick={() => handleVote(review.id, 'reject')} 
+                    disabled={isPending || hasVoted}
+                    title={hasVoted ? "Você já votou nesta avaliação" : "Votar para manter esta avaliação"}
+                >
+                    <ThumbsUp className="mr-2 h-4 w-4"/>
+                    {hasVoted ? "Voto Registrado" : "Votar para Manter"}
+                </Button>
+                <Button 
                     variant="destructive" 
-                    onClick={() => handleRemoveVote(review.id)} 
+                    onClick={() => handleVote(review.id, 'approve')} 
                     disabled={isPending || hasVoted}
                     title={hasVoted ? "Você já votou nesta avaliação" : "Votar para remover esta avaliação"}
                 >
-                <ThumbsUp className="mr-2" />
-                {hasVoted ? "Voto Registrado" : "Votar para Remover"}
+                    <ThumbsDown className="mr-2 h-4 w-4" />
+                    {hasVoted ? "Voto Registrado" : "Votar para Remover"}
                 </Button>
             </CardFooter>
             </Card>

@@ -78,6 +78,17 @@ export async function approveReportedReview(reviewId: number) {
 }
 
 /**
+ * Server action to reject a reported review, potentially making it public again.
+ */
+export async function rejectReportedReview(reviewId: number) {
+    await DataService.rejectReport(reviewId);
+    revalidatePath('/moderation');
+    revalidatePath('/'); // Revalidate relevant pages
+    revalidatePath('/subjects');
+    revalidatePath('/teachers/[teacherId]', 'page');
+}
+
+/**
  * Server action to handle a professor's request submission.
  * It now saves the request to the database.
  */

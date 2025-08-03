@@ -381,7 +381,7 @@ export async function getReportedReviews(): Promise<Review[]> {
             FROM reviews r
             JOIN teachers t ON r.teacher_id = t.id
             JOIN subjects s ON r.subject_id = s.id
-            WHERE r.reported = true AND r.report_count >= 2
+            WHERE r.reported = true
             ORDER BY r.report_count DESC, r.created_at ASC;
         `;
         const result = await client.query(query);
@@ -431,6 +431,42 @@ export async function approveReport(reviewId: number): Promise<void> {
         await client.query('ROLLBACK');
         console.error("Erro ao aprovar denúncia:", error);
         throw new Error('Falha ao aprovar denúncia.');
+    } finally {
+        client.release();
+    }
+}
+
+export async function rejectReport(reviewId: number): Promise<void> {
+    const client = await pool.connect();
+    const VISIBILITY_THRESHOLD = 2;
+
+    try {
+        await client.query('BEGIN');
+
+        const updateResult = await client.query(
+            'UPDATE reviews SET report_count = report_count - 1 WHERE id = $1 RETURNING report_count',
+            [reviewId]
+        );
+
+        if (updateResult.rows.length === 0) {
+            throw new Error('Avaliação não encontrada.');
+        }
+
+        const newReportCount = updateResult.rows[0].report_count;
+
+        // If the report count drops below the visibility threshold, make the review public again.
+        if (newReportCount < VISIBILITY_THRESHOLD) {
+            await client.query(
+                'UPDATE reviews SET reported = false WHERE id = $1',
+                [reviewId]
+            );
+        }
+
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error("Erro ao rejeitar denúncia:", error);
+        throw new Error('Falha ao rejeitar denúncia.');
     } finally {
         client.release();
     }
