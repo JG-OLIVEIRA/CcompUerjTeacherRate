@@ -8,11 +8,6 @@ export const ai = genkit({
   plugins: [
     googleAI(),
   ],
-  // Log errors to the console.
-  logConfig: {
-    channel: 'GCP',
-    level: 'error'
-  },
   // This callback is triggered when a flow fails.
   // It is used to add custom error handling.
   flowErrorCallback: (err: GenkitError) => {
