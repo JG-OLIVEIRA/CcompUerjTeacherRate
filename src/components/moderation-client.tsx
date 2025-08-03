@@ -81,7 +81,8 @@ export default function ModerationClient({ initialReviews }: ModerationClientPro
     });
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "Data indisponível";
     try {
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return "Data inválida";
