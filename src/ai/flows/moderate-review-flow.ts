@@ -10,6 +10,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { GenkitError } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 
 
 // Definição do esquema de entrada para o fluxo de moderação.
@@ -39,6 +40,7 @@ const moderationPrompt = ai.definePrompt({
     name: 'moderationPrompt',
     input: { schema: ModerateReviewInputSchema },
     output: { schema: ModerateReviewOutputSchema },
+    model: googleAI('gemini-1.5-flash-latest'),
     prompt: `
         Você é um moderador de conteúdo para uma plataforma de avaliação de professores universitários. Seu trabalho é crucial para manter um ambiente seguro, justo e construtivo.
         Seu objetivo é garantir que as avaliações sejam respeitosas e focadas estritamente na performance profissional e didática do professor.
@@ -82,10 +84,6 @@ const moderateReviewFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await moderationPrompt(input);
-    
-    // O Genkit lança um erro se a saída não puder ser gerada ou se estiver vazia,
-    // então a verificação explícita !output não é estritamente necessária aqui,
-    // pois a falha será capturada pelo bloco catch na server action.
     if (!output) {
       throw new GenkitError({
         source: 'moderateReviewFlow',
