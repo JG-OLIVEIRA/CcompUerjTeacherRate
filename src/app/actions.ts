@@ -7,37 +7,6 @@ import type { ModerateReviewInput, ModerateReviewOutput } from '@/ai/flows/moder
 import { moderateReview as moderateReviewFlow } from '@/ai/flows/moderate-review-flow';
 
 
-// Local moderation based on a word blocklist
-function localModerateReview(text: string): { isAppropriate: boolean; reason?: string } {
-    if (!text || !text.trim()) {
-        return { isAppropriate: true };
-    }
-
-    const blocklist = [
-        'merda', 'bosta', 'caralho', 'cu', 'puta', 'viado', 'arrombado', 'foder',
-        'porra', 'vsf', 'tnc', 'fdp', 'lixo', 'otário', 'babaca', 'idiota', 
-        'imbecil', 'retardado', 'mongol', 'gordo', 'gorda', 'feio', 'feia',
-        'horrível', 'nojento', 'insuportável', 'chato', 'chata', 'burro', 'burra'
-        // Add more words as needed
-    ];
-
-    const lowerCaseText = text.toLowerCase();
-
-    for (const word of blocklist) {
-        // Use word boundaries to avoid matching parts of words (e.g., 'cu' in 'escuta')
-        const regex = new RegExp(`\\b${word}\\b`, 'i');
-        if (regex.test(lowerCaseText)) {
-            return {
-                isAppropriate: false,
-                reason: `Sua avaliação contém linguagem inadequada ("${word}"). Por favor, reformule seu feedback para ser mais construtivo.`
-            };
-        }
-    }
-
-    return { isAppropriate: true };
-}
-
-
 /**
  * Server action to handle form submission for adding a teacher or review.
  * It calls the data service to interact with the database.
@@ -50,15 +19,6 @@ export async function handleAddTeacherOrReview(data: {
     reviewRating: number;
 }): Promise<{ success: boolean; message: string; }> {
     const reviewText = data.reviewText || '';
-
-    // Local moderation check
-    const moderationResult = localModerateReview(reviewText);
-    if (!moderationResult.isAppropriate) {
-        return { 
-            success: false, 
-            message: moderationResult.reason || "Sua avaliação foi considerada inadequada e não pôde ser enviada." 
-        };
-    }
     
     try {
         // Pass the data, ensuring reviewText is a string

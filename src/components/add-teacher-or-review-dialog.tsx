@@ -187,18 +187,6 @@ export function AddTeacherOrReviewDialog({
   const handleSubmit = async (values: FormValues) => {
       const reviewText = values.reviewText || '';
       
-      // First, check the local blocklist on the server
-      const serverValidationResult = await onSubmit(values);
-      if (!serverValidationResult.success) {
-          toast({
-              variant: "destructive",
-              title: "Erro ao Enviar Avaliação",
-              description: serverValidationResult.message,
-              duration: 9000,
-          });
-          return;
-      }
-
       // If local moderation passes, proceed with AI moderation for non-empty texts
       if (reviewText.trim().length < 15) {
           await sendReview(values);
@@ -210,7 +198,7 @@ export function AddTeacherOrReviewDialog({
           const moderationResult = await moderateReview({ reviewText });
           
           if (moderationResult.isAppropriate) {
-              await sendReview(values); // The server action will be called again, but this is fine.
+              await sendReview(values); 
           } else {
               setModerationSuggestion(moderationResult.feedback);
           }
