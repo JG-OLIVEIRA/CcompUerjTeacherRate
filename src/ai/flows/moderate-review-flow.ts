@@ -69,7 +69,7 @@ const moderationPrompt = ai.definePrompt({
         Lembre-se: Críticas à didática ("não explica bem"), à metodologia de avaliação ("a prova foi muito difícil") ou ao material ("os slides são confusos") são permitidas e consideradas apropriadas, desde que escritas de forma respeitosa e sem ataques pessoais ou adjetivos vagos e ofensivos.
     `,
     config: {
-        temperature: 0.2, // Temperatura ainda mais baixa para ser mais determinístico e rigoroso.
+        temperature: 0.1, 
     }
 });
 
