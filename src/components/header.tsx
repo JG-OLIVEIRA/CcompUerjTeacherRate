@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -30,8 +29,8 @@ export default function Header({ pageTitle, pageIconName, children }: HeaderProp
         <Image
             src="https://i.imgur.com/740M4Mu.png"
             alt="Hackerman background"
-            layout="fill"
-            objectFit="cover"
+            fill
+            style={{ objectFit: 'cover' }}
             quality={80}
             className="opacity-20"
         />
