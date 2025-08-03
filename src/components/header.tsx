@@ -26,15 +26,6 @@ export default function Header({ pageTitle, pageIconName, children }: HeaderProp
     <header 
         className="w-full border-b bg-background relative overflow-hidden"
     >
-        <Image
-            src="https://i.imgur.com/740M4Mu.png"
-            alt="Hackerman background"
-            fill
-            style={{ objectFit: 'cover' }}
-            quality={80}
-            className="opacity-20"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
         <div className="container mx-auto px-4 relative z-10">
             <div className="flex flex-col items-center justify-center py-10 sm:py-12 text-center">
                 <div className="flex items-center gap-3 sm:gap-4 mb-4">
