@@ -11,8 +11,8 @@ import WelcomeReviewHandler from '@/components/welcome-review-handler';
 import RecentReviews from '@/components/recent-reviews';
 import { Separator } from '@/components/ui/separator';
 import StatsCards from '@/components/stats-cards';
+import type { Teacher } from '@/lib/types';
 
-export const dynamic = 'force-dynamic';
 
 export default async function TeachersPage() {
   // Fetch all data in parallel

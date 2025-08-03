@@ -61,7 +61,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface AddTeacherOrReviewDialogProps {
     allSubjectNames: string[];
     allTeachers: Teacher[];
-    onSubmit: (data: Omit<FormValues, 'reviewAuthor'>) => Promise<void>;
+    onSubmit: (data: Omit<FormValues, 'reviewAuthor'>) => Promise<{ success: boolean; message: string; }>;
     triggerElement?: React.ReactNode;
     initialTeacherName?: string;
     open?: boolean;
@@ -152,21 +152,31 @@ export function AddTeacherOrReviewDialog({
 
   const sendReview = async (values: FormValues) => {
     try {
-        await onSubmit({
+        const result = await onSubmit({
             ...values,
             reviewText: values.reviewText || '', 
         });
-        toast({
-            title: "Avaliação enviada!",
-            description: "Obrigado por contribuir com a comunidade.",
-        });
-        setOpen(false);
-        form.reset();
+
+        if (result.success) {
+            toast({
+                title: "Avaliação enviada!",
+                description: "Obrigado por contribuir com a comunidade.",
+            });
+            setOpen(false);
+            form.reset();
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Erro ao Enviar Avaliação",
+                description: result.message,
+                duration: 9000,
+            });
+        }
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Ocorreu um erro desconhecido.";
         toast({
             variant: "destructive",
-            title: "Erro ao Enviar Avaliação",
+            title: "Erro Inesperado",
             description: errorMessage,
             duration: 9000,
         });
@@ -176,7 +186,20 @@ export function AddTeacherOrReviewDialog({
   const handleSubmit = async (values: FormValues) => {
       const reviewText = values.reviewText || '';
       
-      if (reviewText.trim().length < 15) { // Skip moderation for very short or empty texts
+      // First, check the local blocklist on the server
+      const serverValidationResult = await onSubmit(values);
+      if (!serverValidationResult.success) {
+          toast({
+              variant: "destructive",
+              title: "Erro ao Enviar Avaliação",
+              description: serverValidationResult.message,
+              duration: 9000,
+          });
+          return;
+      }
+
+      // If local moderation passes, proceed with AI moderation for non-empty texts
+      if (reviewText.trim().length < 15) {
           await sendReview(values);
           return;
       }
@@ -186,7 +209,7 @@ export function AddTeacherOrReviewDialog({
           const moderationResult = await moderateReview({ reviewText });
           
           if (moderationResult.isAppropriate) {
-              await sendReview(values);
+              await sendReview(values); // The server action will be called again, but this is fine.
           } else {
               setModerationSuggestion(moderationResult.feedback);
           }
@@ -197,8 +220,6 @@ export function AddTeacherOrReviewDialog({
               title: "Erro na Moderação",
               description: "Não foi possível analisar sua avaliação. Por favor, tente novamente.",
           });
-          // Optionally, allow submission anyway
-          // await sendReview(values);
       } finally {
           setIsModerating(false);
       }
@@ -401,5 +422,3 @@ export function AddTeacherOrReviewDialog({
     </>
   );
 }
-
-    

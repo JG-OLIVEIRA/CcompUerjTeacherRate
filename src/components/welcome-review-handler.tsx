@@ -7,7 +7,7 @@ import WelcomeReviewDialog from './welcome-review-dialog';
 
 interface WelcomeReviewHandlerProps {
     teachers: Teacher[];
-    onSubmit: (data: any) => Promise<void>;
+    onSubmit: (data: any) => Promise<{ success: boolean; message: string; }>;
 }
 
 export default function WelcomeReviewHandler({ teachers, onSubmit }: WelcomeReviewHandlerProps) {

@@ -41,30 +41,39 @@ function localModerateReview(text: string): { isAppropriate: boolean; reason?: s
 /**
  * Server action to handle form submission for adding a teacher or review.
  * It calls the data service to interact with the database.
+ * Returns an object indicating success or failure.
  */
 export async function handleAddTeacherOrReview(data: {
     teacherName: string;
     subjectNames: string[]; 
     reviewText?: string; // Allow undefined
     reviewRating: number;
-}) {
+}): Promise<{ success: boolean; message: string; }> {
     const reviewText = data.reviewText || '';
 
     // Local moderation check
     const moderationResult = localModerateReview(reviewText);
     if (!moderationResult.isAppropriate) {
-        // If the content is inappropriate, throw an error with the reason.
-        throw new Error(moderationResult.reason || "Sua avaliação foi considerada inadequada e não pôde ser enviada.");
+        return { 
+            success: false, 
+            message: moderationResult.reason || "Sua avaliação foi considerada inadequada e não pôde ser enviada." 
+        };
     }
     
-    // Pass the data, ensuring reviewText is a string
-    await DataService.addTeacherOrReview({
-        ...data,
-        reviewText: reviewText,
-    });
-    revalidatePath('/'); // Revalida a página principal e a de matérias
-    revalidatePath('/subjects');
-    revalidatePath('/teachers/[teacherId]', 'page');
+    try {
+        // Pass the data, ensuring reviewText is a string
+        await DataService.addTeacherOrReview({
+            ...data,
+            reviewText: reviewText,
+        });
+        revalidatePath('/'); // Revalida a página principal e a de matérias
+        revalidatePath('/subjects');
+        revalidatePath('/teachers/[teacherId]', 'page');
+        return { success: true, message: 'Avaliação enviada com sucesso!' };
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Falha ao salvar os dados no banco de dados.";
+        return { success: false, message: errorMessage };
+    }
 }
 
 

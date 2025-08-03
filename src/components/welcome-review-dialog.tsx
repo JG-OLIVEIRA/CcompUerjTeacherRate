@@ -41,7 +41,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface WelcomeReviewDialogProps {
     teacherToPrompt: Teacher;
-    onSubmit: (data: Omit<FormValues, 'reviewAuthor'>) => Promise<void>;
+    onSubmit: (data: Omit<FormValues, 'reviewAuthor'>) => Promise<{ success: boolean; message: string; }>;
 }
 
 const SESSION_STORAGE_KEY = 'welcomePromptShown';
@@ -89,16 +89,25 @@ export default function WelcomeReviewDialog({
 
   const handleSubmit = async (values: FormValues) => {
     try {
-        await onSubmit({
+        const result = await onSubmit({
           ...values,
           reviewText: values.reviewText || '', // Garante que o valor seja uma string vazia se for undefined
         });
-        toast({
-            title: "Avaliação enviada!",
-            description: "Obrigado por contribuir com a comunidade.",
-        });
-        setOpen(false);
-        form.reset();
+
+        if (result.success) {
+            toast({
+                title: "Avaliação enviada!",
+                description: "Obrigado por contribuir com a comunidade.",
+            });
+            setOpen(false);
+            form.reset();
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Erro ao enviar avaliação",
+                description: result.message,
+            });
+        }
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Ocorreu um erro desconhecido.";
         toast({
