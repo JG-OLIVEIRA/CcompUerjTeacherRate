@@ -247,6 +247,7 @@ export async function getAllTeachers(): Promise<{ id: number; name: string }[]> 
 export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
     const client = await pool.connect();
     try {
+        // 1. Get all teachers and initialize them in a map
         const allTeachersResult = await client.query("SELECT id, name FROM teachers ORDER BY name");
         const teachersMap: Map<number, Teacher> = new Map();
 
@@ -260,9 +261,10 @@ export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
             });
         });
 
+        // 2. Get all non-reported reviews with their subject names
         const reviewsQuery = `
             SELECT 
-                t.id as teacher_id,
+                r.teacher_id,
                 r.id as review_id,
                 r.text as review_text,
                 r.rating as review_rating,
@@ -272,15 +274,16 @@ export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
                 r.report_count as review_report_count,
                 s.name as subject_name
             FROM reviews r
-            JOIN teachers t ON r.teacher_id = t.id
             JOIN subjects s ON r.subject_id = s.id
             WHERE r.reported = false
-            ORDER BY t.name, s.name;
+            ORDER BY r.teacher_id;
         `;
         const reviewsResult = await client.query(reviewsQuery);
 
+        // 3. Associate reviews and subjects with teachers
         for (const row of reviewsResult.rows) {
             let teacher = teachersMap.get(row.teacher_id);
+            // Only process reviews for teachers that exist in our map
             if (teacher) {
                 if (row.review_id && !teacher.reviews.some(r => r.id === row.review_id)) {
                     teacher.reviews.push({
@@ -299,6 +302,7 @@ export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
             }
         }
 
+        // 4. Calculate average rating for each teacher
         const teacherList = Array.from(teachersMap.values());
         for (const teacher of teacherList) {
             teacher.averageRating = calculateAverageRating(teacher.reviews);
