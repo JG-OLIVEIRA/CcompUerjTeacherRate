@@ -25,7 +25,7 @@ export default function Header({ pageTitle, pageIconName, children }: HeaderProp
   return (
     <header 
         className="w-full border-b bg-background relative bg-cover bg-center bg-no-repeat"
-        style={{backgroundImage: `url(https://storage.googleapis.com/datsal-latam-dev-f9z9.appspot.com/6c205e46-17b5-4e71-97b7-548981f9b097.png)`}}
+        style={{backgroundImage: `url(https://storage.googleapis.com/datsal-latam-dev-f9z9.appspot.com/b95b4a46-86c3-4339-b9d9-2b8e3a8c1605.png)`}}
     >
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
         <div className="container mx-auto px-4 relative z-10">
