@@ -1,41 +1,23 @@
-# Otimizador de Aplicativos
+# Firebase Studio
 
-Este é um aplicativo Next.js que utiliza a IA Generativa do Google para analisar a qualidade do código, resumir suas funcionalidades e fornecer sugestões de melhoria.
+This is a NextJS starter in Firebase Studio.
 
-## Visão Geral
+To get started, take a look at src/app/page.tsx.
 
-O Otimizador de Aplicativos permite que os desenvolvedores colem ou importem trechos de código em várias linguagens de programação. A aplicação então utiliza modelos de IA para:
+## Environment Setup
 
-- **Analisar o Código**: Fornecer sugestões para melhorar a qualidade, legibilidade e desempenho do código.
-- **Resumir o Código**: Gerar um resumo conciso da funcionalidade do código.
-- **Explicar o Código**: Descrever o que o código faz de uma forma fácil de entender.
+To run this project, you need to set up your environment variables.
 
-## Começando
-
-Para executar este projeto localmente, siga estes passos:
-
-1.  **Clone o repositório:**
+1.  Create a `.env` file in the root of the project by copying the example file:
     ```bash
-    git clone <url-do-repositorio>
-    cd otimizador-de-aplicativos
+    cp .env.example .env
     ```
-
-2.  **Instale as dependências:**
-    ```bash
-    npm install
+2.  **Set the `DATABASE_URL`**: Open the `.env` file and replace the placeholder with your actual PostgreSQL connection string. It should look something like this:
     ```
-
-3.  **Execute o servidor de desenvolvimento:**
-    ```bash
-    npm run dev
+    DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?ssl=true"
     ```
+    **Important**: For production databases that require a secure connection, ensure you append `?ssl=true` to the end of your URL.
 
-Abra [http://localhost:3000](http://localhost:3000) no seu navegador para ver a aplicação.
+## Running the Database Schema
 
-## Tecnologias Utilizadas
-
--   [Next.js](https://nextjs.org/) - Framework React para produção.
--   [Genkit](https://firebase.google.com/docs/genkit) - Framework de IA do Google.
--   [Tailwind CSS](https://tailwindcss.com/) - Um framework de CSS utilitário.
--   [Shadcn/ui](https://ui.shadcn.com/) - Componentes de UI lindamente projetados.
--   [TypeScript](https://www.typescriptlang.org/) - Superset de JavaScript com tipagem estática.
+Before you can run the application, you need to create the necessary tables in your database. Connect to your PostgreSQL database and execute the commands found in the `schema.sql` file. This will set up the `teachers`, `subjects`, `reviews`, and `professor_requests` tables.

@@ -1,18 +1,18 @@
-# **App Name**: Otimizador de Aplicativos
+# **App Name**: TeacherRate
 
 ## Core Features:
 
-- Análise de Código IA: Avaliar a qualidade do código e sugerir melhorias utilizando um modelo de linguagem como ferramenta.
-- Exibição de Melhorias Sugeridas: Mostrar as recomendações em um formato que seja simples e fácil de entender.
-- Importação de Código: Permitir a importação de arquivos de código de várias fontes.
-- Suporte Multi-Linguagem: Oferecer suporte a diversas linguagens de programação, incluindo, mas não se limitando a JavaScript, Python e Java.
+- Teacher Listing: Display a list of teachers, separated by subject.
+- Rating Display: Display a rating for each teacher.
+- Top Teacher Highlight: Highlight the top-rated teacher within each subject, with a small trophy icon.
+- AI Review Insights: Provide AI-generated insights from reviews. Use tool to decide when these insights should be included.
 
 ## Style Guidelines:
 
-- Cor primária: Azul suave (#64B5F6) para indicar confiabilidade e clareza.
-- Cor de fundo: Branco acinzentado claro (#F5F5F5) para facilitar a leitura e reduzir o cansaço visual.
-- Cor de destaque: Verde claro (#A5D6A7) para indicar áreas de foco e ações positivas (como sugestões de melhorias).
-- Fonte para corpo e cabeçalhos: 'Inter', uma fonte sans-serif para garantir a leitura fácil tanto em títulos quanto no corpo do texto.
-- Fonte para código: 'Source Code Pro', uma fonte monoespaçada que assegura que o código seja apresentado de forma clara e legível.
-- Ícones claros e consistentes para representar diferentes tipos de recomendações e funcionalidades.
-- Layout limpo e organizado para permitir que os usuários visualizem o código e as recomendações lado a lado de forma eficiente.
+- Primary color: Soft lavender (#D0BFFF) to convey trustworthiness and approachability.
+- Background color: Very light lavender (#F5F3FF). A brightness-adjusted, desaturated tint of the primary color.
+- Accent color: Light purple (#B794F4). A more saturated version of the primary color's analogous hue.
+- Font: 'Inter', a sans-serif font, for a clean and modern look in both headings and body.
+- Use simple, consistent icons for subjects and ratings (e.g., stars for ratings).
+- Clean and well-spaced layout with clear sections for each subject and teacher.
+- Subtle animations on hover or when displaying teacher details.

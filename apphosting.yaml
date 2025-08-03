@@ -1,0 +1,19 @@
+# Settings to manage and configure a Firebase App Hosting backend.
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  # Increase this value if you'd like to automatically spin up
+  # more instances in response to increased traffic.
+  maxInstances: 1
+# Add environment variables to your backend.
+# To generate a SESSION_SECRET, run `openssl rand -base64 32`.
+# To set secrets, run `firebase apphosting:backends:update --service-id=<serviceId> --update-env-vars=SESSION_SECRET=<your-secret>,DATABASE_URL=<your-db-url>`
+env:
+  - variable: SESSION_SECRET
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: DATABASE_URL
+    availability:
+      - BUILD
+      - RUNTIME
