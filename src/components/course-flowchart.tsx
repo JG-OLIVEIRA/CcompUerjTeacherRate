@@ -26,7 +26,7 @@ export const prerequisites: { [subject: string]: string[] } = {
   "Algoritmos e Est. de Dados II": ["Cálculo das Probabilidades", "Algoritmos e Est. de Dados I"],
   "Linguagem de Programação II": ["Linguagem de Programação I"],
   "Teoria da Computação": ["Linguagem de Programação I"],
-  "Cálculo Numérico": ["Cálculo III"],
+  "Cálculo Numérico": ["Cálculo II"],
   "Cálculo IV": ["Cálculo III"],
   "Algoritmos em Grafos": ["Algoritmos e Est. de Dados II"],
   "Engenharia de Software": ["Algoritmos e Est. de Dados II"],
