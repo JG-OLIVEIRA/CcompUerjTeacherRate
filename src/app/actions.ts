@@ -5,6 +5,7 @@ import * as DataService from '@/lib/data-service';
 import { revalidatePath } from 'next/cache';
 import type { ModerateReviewInput, ModerateReviewOutput } from '@/ai/flows/moderate-review-flow';
 import { moderateReview as moderateReviewFlow } from '@/ai/flows/moderate-review-flow';
+import { GenkitError } from 'genkit';
 
 
 /**
@@ -20,21 +21,27 @@ export async function handleAddTeacherOrReview(data: {
 }): Promise<{ success: boolean; message: string; }> {
     const reviewText = data.reviewText || '';
     
-    // Server-side moderation step
-    if (reviewText.trim().length > 10) {
+    // Server-side moderation step is only required if there is text to moderate.
+    if (reviewText.trim().length > 0) {
         try {
             const moderationResult = await moderateReviewFlow({ reviewText });
             if (!moderationResult.isAppropriate) {
                 // Return the feedback from the AI as the error message
                 return { 
                     success: false, 
-                    message: `Sua avaliação foi bloqueada: ${moderationResult.feedback}` 
+                    message: moderationResult.feedback
                 };
             }
         } catch (error) {
             console.error("AI Moderation Error:", error);
-            // Decide if you want to block the review or allow it if the AI fails.
-            // For safety, it's better to return a generic error.
+            // If it's a GenkitError, it might contain specific feedback.
+            if (error instanceof GenkitError) {
+                 return { 
+                    success: false, 
+                    message: `Sua avaliação foi bloqueada: ${error.message}` 
+                };
+            }
+            // Fallback for other types of errors.
             return { 
                 success: false, 
                 message: "Não foi possível analisar sua avaliação. Por favor, tente novamente mais tarde." 

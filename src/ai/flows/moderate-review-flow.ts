@@ -59,7 +59,7 @@ const moderationPrompt = ai.definePrompt({
         2.  Se a avaliação violar QUALQUER um dos critérios:
             -   Defina 'isAppropriate' como 'false'.
             -   No campo 'feedback', explique de forma clara e direta qual regra foi violada e por quê.
-            -   Se possível, ofereça uma sugestão de como a ideia central poderia ser reescrita de forma construtiva e respeitosa. Por exemplo, se o texto for "professor chato", o feedback deve ser: "O termo 'chato' é vago e ofensivo. Tente focar em aspectos específicos, como 'A didática poderia ser mais dinâmica e com mais exemplos práticos'." Se for um ataque pessoal direto como "professor gordo e feio", o feedback deve ser: "Comentários sobre a aparência física são estritamente proibidos e constituem um ataque pessoal.".
+            -   Se possível, ofereça uma sugestão de como a ideia central poderia ser reescrita de forma construtiva e respeitosa. Por exemplo, se o texto for "professor chato", o feedback deve ser: "Sua avaliação foi bloqueada. O termo 'chato' é vago e ofensivo. Tente focar em aspectos específicos, como 'A didática poderia ser mais dinâmica e com mais exemplos práticos'." Se for um ataque pessoal direto como "professor gordo e feio", o feedback deve ser: "Sua avaliação foi bloqueada. Comentários sobre a aparência física são estritamente proibidos e constituem um ataque pessoal.".
         3.  Se a avaliação for APROPRIADA e não violar nenhuma regra:
             -   Defina 'isAppropriate' como 'true'.
             -   No campo 'feedback', coloque a mensagem: "Avaliação apropriada.".
@@ -83,12 +83,15 @@ const moderateReviewFlow = ai.defineFlow(
   async (input) => {
     const { output } = await moderationPrompt(input);
     
+    // O Genkit lança um erro se a saída não puder ser gerada ou se estiver vazia,
+    // então a verificação explícita !output não é estritamente necessária aqui,
+    // pois a falha será capturada pelo bloco catch na server action.
     if (!output) {
-        throw new GenkitError({
-            source: 'moderateReviewFlow',
-            status: 'UNAVAILABLE',
-            message: 'A IA não conseguiu gerar uma resposta. A resposta estava vazia.',
-        });
+      throw new GenkitError({
+        source: 'moderateReviewFlow',
+        status: 'UNAVAILABLE',
+        message: 'A IA não conseguiu gerar uma resposta. A resposta estava vazia.',
+      });
     }
     
     return output;
