@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -42,32 +42,18 @@ type FormValues = z.infer<typeof formSchema>;
 interface WelcomeReviewDialogProps {
     teacherToPrompt: Teacher;
     onSubmit: (data: Omit<FormValues, 'reviewAuthor'>) => Promise<{ success: boolean; message: string; }>;
+    open: boolean;
+    setOpen: (open: boolean) => void;
 }
-
-const SESSION_STORAGE_KEY = 'welcomePromptShown';
 
 export default function WelcomeReviewDialog({ 
     teacherToPrompt,
     onSubmit,
+    open,
+    setOpen,
 }: WelcomeReviewDialogProps) {
-  const [open, setOpen] = useState(false);
   const [hoverRating, setHoverRating] = useState(0);
   const { toast } = useToast();
-
-  useEffect(() => {
-    // Check if the prompt has already been shown in this session
-    const hasBeenShown = sessionStorage.getItem(SESSION_STORAGE_KEY);
-    // Also check if the teacher has subjects to review
-    if (!hasBeenShown && teacherToPrompt.subjects && teacherToPrompt.subjects.size > 0) {
-      // Show the dialog after a short delay
-      const timer = setTimeout(() => {
-        setOpen(true);
-        sessionStorage.setItem(SESSION_STORAGE_KEY, 'true');
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [teacherToPrompt]);
-
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
