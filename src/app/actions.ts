@@ -9,24 +9,46 @@ import { moderateReview as moderateReviewFlow } from '@/ai/flows/moderate-review
 
 /**
  * Server action to handle form submission for adding a teacher or review.
- * It calls the data service to interact with the database.
+ * It now performs AI moderation before saving the data.
  * Returns an object indicating success or failure.
  */
 export async function handleAddTeacherOrReview(data: {
     teacherName: string;
     subjectNames: string[]; 
-    reviewText?: string; // Allow undefined
+    reviewText?: string;
     reviewRating: number;
 }): Promise<{ success: boolean; message: string; }> {
     const reviewText = data.reviewText || '';
     
+    // Server-side moderation step
+    if (reviewText.trim().length > 10) {
+        try {
+            const moderationResult = await moderateReviewFlow({ reviewText });
+            if (!moderationResult.isAppropriate) {
+                // Return the feedback from the AI as the error message
+                return { 
+                    success: false, 
+                    message: `Sua avaliação foi bloqueada: ${moderationResult.feedback}` 
+                };
+            }
+        } catch (error) {
+            console.error("AI Moderation Error:", error);
+            // Decide if you want to block the review or allow it if the AI fails.
+            // For safety, it's better to return a generic error.
+            return { 
+                success: false, 
+                message: "Não foi possível analisar sua avaliação. Por favor, tente novamente mais tarde." 
+            };
+        }
+    }
+
+    // Proceed to save the data if moderation passes or is not required
     try {
-        // Pass the data, ensuring reviewText is a string
         await DataService.addTeacherOrReview({
             ...data,
             reviewText: reviewText,
         });
-        revalidatePath('/'); // Revalida a página principal e a de matérias
+        revalidatePath('/'); // Revalidate main page and subjects
         revalidatePath('/subjects');
         revalidatePath('/teachers/[teacherId]', 'page');
         return { success: true, message: 'Avaliação enviada com sucesso!' };
@@ -97,12 +119,4 @@ export async function handleRequest(data: { professorName: string; email: string
         const errorMessage = error instanceof Error ? error.message : "Não foi possível enviar sua solicitação. Tente novamente mais tarde.";
         return { success: false, message: errorMessage };
     }
-}
-
-/**
- * Server action to call the AI moderation flow.
- * This wraps the imported flow function in an async function to comply with "use server" requirements.
- */
-export async function moderateReview(input: ModerateReviewInput): Promise<ModerateReviewOutput> {
-    return moderateReviewFlow(input);
 }

@@ -22,18 +22,8 @@ import {
     DialogDescription,
     DialogTrigger
   } from './ui/dialog';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Textarea } from '@/components/ui/textarea';
-import { Star, PlusCircle, ShieldAlert, Sparkles, Wand2 } from 'lucide-react';
+import { Star, PlusCircle, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Combobox } from './ui/combobox';
 import { useToast } from '@/hooks/use-toast';
@@ -41,7 +31,7 @@ import { ScrollArea } from './ui/scroll-area';
 import type { Teacher } from '@/lib/types';
 import { Alert, AlertDescription } from './ui/alert';
 import { MultiSelect } from './ui/multi-select';
-import { moderateReview } from '@/app/actions';
+import { handleAddTeacherOrReview } from '@/app/actions';
 
 
 const formSchema = z.object({
@@ -80,8 +70,6 @@ export function AddTeacherOrReviewDialog({
   const [internalOpen, setInternalOpen] = useState(false);
   const [hoverRating, setHoverRating] = useState(0);
   const { toast } = useToast();
-  const [isModerating, setIsModerating] = useState(false);
-  const [moderationSuggestion, setModerationSuggestion] = useState<string | null>(null);
 
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
@@ -151,7 +139,7 @@ export function AddTeacherOrReviewDialog({
     }
   }, [selectedTeacher, form]);
 
-  const sendReview = async (values: FormValues) => {
+  const handleSubmit = async (values: FormValues) => {
     try {
         const result = await onSubmit({
             ...values,
@@ -184,51 +172,9 @@ export function AddTeacherOrReviewDialog({
     }
   };
 
-  const handleSubmit = async (values: FormValues) => {
-      const reviewText = values.reviewText || '';
-      
-      // If local moderation passes, proceed with AI moderation for non-empty texts
-      if (reviewText.trim().length < 15) {
-          await sendReview(values);
-          return;
-      }
-      
-      setIsModerating(true);
-      try {
-          const moderationResult = await moderateReview({ reviewText });
-          
-          if (moderationResult.isAppropriate) {
-              await sendReview(values); 
-          } else {
-              setModerationSuggestion(moderationResult.feedback);
-          }
-      } catch (error) {
-          console.error("Moderation error:", error);
-          toast({
-              variant: "destructive",
-              title: "Erro na Moderação",
-              description: "Não foi possível analisar sua avaliação. Por favor, tente novamente.",
-          });
-      } finally {
-          setIsModerating(false);
-      }
-  };
-
-
-  const handleAcceptSuggestion = () => {
-    if (moderationSuggestion) {
-        form.setValue('reviewText', moderationSuggestion);
-        const currentValues = form.getValues();
-        sendReview(currentValues); // Send the review with the new text
-    }
-    setModerationSuggestion(null); // Close the dialog
-  };
-
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
         form.reset();
-        setModerationSuggestion(null);
-        setIsModerating(false);
     }
     setOpen(isOpen);
   }
@@ -365,13 +311,8 @@ export function AddTeacherOrReviewDialog({
                         </Alert>
                         <div className="flex justify-end gap-2">
                             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
-                            <Button type="submit" disabled={form.formState.isSubmitting || isModerating}>
-                                {isModerating ? (
-                                    <>
-                                        <Sparkles className="mr-2 h-4 w-4 animate-spin" />
-                                        Analisando...
-                                    </>
-                                ) : "Enviar Avaliação"}
+                            <Button type="submit" disabled={form.formState.isSubmitting}>
+                                {form.formState.isSubmitting ? "Enviando..." : "Enviar Avaliação"}
                             </Button>
                         </div>
                     </div>
@@ -379,35 +320,6 @@ export function AddTeacherOrReviewDialog({
             </Form>
         </DialogContent>
     </Dialog>
-    <AlertDialog open={!!moderationSuggestion} onOpenChange={() => setModerationSuggestion(null)}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle className="flex items-center gap-2">
-                    <Wand2 className="h-5 w-5 text-primary" />
-                    Sugestão de Melhoria
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                    Nossa IA detectou que sua avaliação pode ser mais construtiva. Aqui está uma sugestão para tornar seu feedback mais eficaz e respeitoso.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="text-sm space-y-4 py-4">
-                <div className="p-3 bg-destructive/10 border-l-4 border-destructive rounded-r-md">
-                    <p className="font-semibold text-destructive-foreground/80">Seu texto:</p>
-                    <p className="italic text-destructive-foreground/90">"{form.getValues('reviewText')}"</p>
-                </div>
-                 <div className="p-3 bg-primary/10 border-l-4 border-primary rounded-r-md">
-                    <p className="font-semibold text-primary/90">Sugestão:</p>
-                    <p className="italic text-foreground">"{moderationSuggestion}"</p>
-                </div>
-            </div>
-            <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setModerationSuggestion(null)}>Deixe-me editar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleAcceptSuggestion}>
-                    Aceitar e Enviar
-                </AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
     </>
   );
 }
