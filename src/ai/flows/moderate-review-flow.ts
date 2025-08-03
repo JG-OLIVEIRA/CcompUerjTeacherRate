@@ -40,7 +40,7 @@ const moderationPrompt = ai.definePrompt({
     name: 'moderationPrompt',
     input: { schema: ModerateReviewInputSchema },
     output: { schema: ModerateReviewOutputSchema },
-    model: googleAI('gemini-1.5-flash-latest'),
+    model: googleAI('gemini-1.5-pro-latest'),
     prompt: `
         Você é um moderador de conteúdo para uma plataforma de avaliação de professores universitários. Seu trabalho é crucial para manter um ambiente seguro, justo e construtivo.
         Seu objetivo é garantir que as avaliações sejam respeitosas e focadas estritamente na performance profissional e didática do professor.
