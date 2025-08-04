@@ -290,8 +290,8 @@ export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
                         id: row.review_id,
                         text: row.review_text || '',
                         rating: row.review_rating || 0,
-                        upvotes: row.review_upvotes || 0,
-                        downvotes: row.review_downvotes || 0,
+                        upvotes: row.upvotes || 0,
+                        downvotes: row.downvotes || 0,
                         createdAt: row.review_created_at?.toISOString() || '',
                         report_count: row.review_report_count || 0,
                     });
@@ -610,7 +610,7 @@ export async function getPlatformStats(): Promise<{ totalTeachers: number; total
             FROM reviews 
             WHERE 
                 reported = false AND 
-                created_at >= date_trunc('week', NOW() AT TIME ZONE 'UTC' - interval '1 day') + interval '1 day';
+                created_at >= date_trunc('week', NOW() AT TIME ZONE 'UTC');
         `);
 
         const [teachersResult, reviewsResult, weeklyReviewsResult] = await Promise.all([
@@ -631,3 +631,5 @@ export async function getPlatformStats(): Promise<{ totalTeachers: number; total
         client.release();
     }
 }
+
+    
