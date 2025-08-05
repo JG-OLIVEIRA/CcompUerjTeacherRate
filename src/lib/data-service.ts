@@ -150,14 +150,25 @@ export async function addTeacherOrReview(data: {
                 subjectId = subjectResult.rows[0].id;
             }
             
-            if(data.reviewText.trim()) {
+            const hasText = data.reviewText && data.reviewText.trim() !== '';
+
+            if (hasText) {
                 const duplicateCheck = await client.query(
                     'SELECT id FROM reviews WHERE teacher_id = $1 AND subject_id = $2 AND text = $3 AND reported = false',
                     [teacherId, subjectId, data.reviewText]
                 );
                 
                 if (duplicateCheck.rowCount && duplicateCheck.rowCount > 0) {
-                    throw new Error(`Uma avaliação idêntica para o professor ${data.teacherName} na matéria ${subjectName} já foi enviada.`);
+                    throw new Error(`Uma avaliação com o mesmo texto para o professor ${data.teacherName} na matéria ${subjectName} já foi enviada.`);
+                }
+            } else {
+                 // If there's no text, check if a text-less review already exists for this combo
+                 const duplicateCheck = await client.query(
+                    'SELECT id FROM reviews WHERE teacher_id = $1 AND subject_id = $2 AND (text IS NULL OR text = \'\') AND reported = false',
+                    [teacherId, subjectId]
+                );
+                 if (duplicateCheck.rowCount && duplicateCheck.rowCount > 0) {
+                    throw new Error(`Uma avaliação para o professor ${data.teacherName} na matéria ${subjectName} já foi enviada. Para enviar outra, adicione um comentário escrito.`);
                 }
             }
 
@@ -171,7 +182,7 @@ export async function addTeacherOrReview(data: {
     } catch (error) {
         await client.query('ROLLBACK');
         console.error("Erro ao adicionar professor/avaliação:", error);
-        if (error instanceof Error && error.message.includes("idêntica")) {
+        if (error instanceof Error && (error.message.includes("idêntica") || error.message.includes("já foi enviada"))) {
             throw error;
         }
         throw new Error("Falha ao salvar os dados no banco de dados.");
