@@ -244,6 +244,20 @@ export async function getAllTeachers(): Promise<{ id: number; name: string }[]> 
     }
 }
 
+export async function getAllSubjectNames(): Promise<string[]> {
+    const client = await pool.connect();
+    try {
+        const result = await client.query("SELECT name FROM subjects ORDER BY name");
+        return result.rows.map(row => row.name);
+    } catch (error) {
+        console.error("Error fetching all subject names:", error);
+        return [];
+    } finally {
+        client.release();
+    }
+}
+
+
 export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
     const client = await pool.connect();
     try {
