@@ -58,6 +58,8 @@ interface AddTeacherOrReviewDialogProps {
     onOpenChange?: (open: boolean) => void;
 }
 
+const SUBMITTED_REVIEWS_KEY = 'submitted_reviews';
+
 export function AddTeacherOrReviewDialog({ 
     allSubjectNames,
     allTeachers,
@@ -140,13 +142,43 @@ export function AddTeacherOrReviewDialog({
   }, [selectedTeacher, form]);
 
   const handleSubmit = async (values: FormValues) => {
+    
+    // Client-side check for duplicate submissions
     try {
+        const submittedReviewsRaw = localStorage.getItem(SUBMITTED_REVIEWS_KEY);
+        const submittedReviews: string[] = submittedReviewsRaw ? JSON.parse(submittedReviewsRaw) : [];
+        
+        const hasSubmitted = values.subjectNames.some(subjectName => {
+            const submissionKey = `${values.teacherName}-${subjectName}`;
+            return submittedReviews.includes(submissionKey);
+        });
+
+        if (hasSubmitted) {
+            toast({
+                variant: "destructive",
+                title: "Avaliação já enviada",
+                description: "Você já enviou uma avaliação para este professor e matéria neste navegador.",
+                duration: 9000,
+            });
+            return; // Stop submission
+        }
+
         const result = await onSubmit({
             ...values,
             reviewText: values.reviewText || '', 
         });
 
         if (result.success) {
+            // Mark these combinations as submitted in localStorage
+            const newSubmitted = [...submittedReviews];
+            values.subjectNames.forEach(subjectName => {
+                const submissionKey = `${values.teacherName}-${subjectName}`;
+                if (!newSubmitted.includes(submissionKey)) {
+                    newSubmitted.push(submissionKey);
+                }
+            });
+            localStorage.setItem(SUBMITTED_REVIEWS_KEY, JSON.stringify(newSubmitted));
+
             toast({
                 title: "Avaliação enviada!",
                 description: "Obrigado por contribuir com a comunidade.",

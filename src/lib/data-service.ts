@@ -138,7 +138,7 @@ export async function addTeacherOrReview(data: {
             teacherId = teacherResult.rows[0].id;
         }
 
-        // For each subject, check for duplicates and then create the review
+        // For each subject, create the review
         for (const subjectName of data.subjectNames) {
             let subjectId;
             const subjectResult = await client.query('SELECT id FROM subjects WHERE name = $1', [subjectName]);
@@ -150,28 +150,8 @@ export async function addTeacherOrReview(data: {
                 subjectId = subjectResult.rows[0].id;
             }
             
-            const hasText = data.reviewText && data.reviewText.trim() !== '';
-
-            if (hasText) {
-                const duplicateCheck = await client.query(
-                    'SELECT id FROM reviews WHERE teacher_id = $1 AND subject_id = $2 AND text = $3 AND reported = false',
-                    [teacherId, subjectId, data.reviewText]
-                );
-                
-                if (duplicateCheck.rowCount && duplicateCheck.rowCount > 0) {
-                    throw new Error(`Uma avaliação com o mesmo texto para o professor ${data.teacherName} na matéria ${subjectName} já foi enviada.`);
-                }
-            } else {
-                 // If there's no text, check if a text-less review already exists for this combo
-                 const duplicateCheck = await client.query(
-                    'SELECT id FROM reviews WHERE teacher_id = $1 AND subject_id = $2 AND (text IS NULL OR text = \'\') AND reported = false',
-                    [teacherId, subjectId]
-                );
-                 if (duplicateCheck.rowCount && duplicateCheck.rowCount > 0) {
-                    throw new Error(`Uma avaliação para o professor ${data.teacherName} na matéria ${subjectName} já foi enviada. Para enviar outra, adicione um comentário escrito.`);
-                }
-            }
-
+            // The duplication check is now handled on the client-side to be user-specific.
+            // The server will simply insert the review.
             await client.query(
                 'INSERT INTO reviews (text, rating, teacher_id, subject_id, created_at) VALUES ($1, $2, $3, $4, NOW())',
                 [data.reviewText || '', data.reviewRating, teacherId, subjectId]
@@ -182,9 +162,6 @@ export async function addTeacherOrReview(data: {
     } catch (error) {
         await client.query('ROLLBACK');
         console.error("Erro ao adicionar professor/avaliação:", error);
-        if (error instanceof Error && (error.message.includes("idêntica") || error.message.includes("já foi enviada"))) {
-            throw error;
-        }
         throw new Error("Falha ao salvar os dados no banco de dados.");
     } finally {
         client.release();
