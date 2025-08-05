@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import type { Review } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -9,21 +10,56 @@ import StarRating from './star-rating';
 import { upvoteReview, downvoteReview } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface RecentReviewsProps {
   initialReviews: Review[];
 }
 
+const VOTED_REVIEWS_KEY_RECENT = 'votedReviewsRecent';
+
 export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
   const [reviews, setReviews] = useState(initialReviews);
   const [isPending, startTransition] = useTransition();
+  const [votedReviewIds, setVotedReviewIds] = useState<number[]>([]);
   const { toast } = useToast();
 
+  useEffect(() => {
+    try {
+      const voted = localStorage.getItem(VOTED_REVIEWS_KEY_RECENT);
+      if (voted) {
+        setVotedReviewIds(JSON.parse(voted));
+      }
+    } catch (error) {
+      console.error("Failed to parse voted reviews from localStorage", error);
+    }
+  }, []);
+
+  const addVotedReviewId = (reviewId: number) => {
+    const newVotedIds = [...votedReviewIds, reviewId];
+    setVotedReviewIds(newVotedIds);
+    try {
+      localStorage.setItem(VOTED_REVIEWS_KEY_RECENT, JSON.stringify(newVotedIds));
+    } catch (error) {
+      console.error("Failed to save voted review to localStorage", error);
+    }
+  };
+
   const handleVote = (reviewId: number, voteType: 'up' | 'down') => {
+    if (votedReviewIds.includes(reviewId)) {
+        toast({
+            variant: 'destructive',
+            title: 'Voto já registrado',
+            description: 'Você já votou nesta avaliação.',
+        });
+        return;
+    }
+
     startTransition(async () => {
       try {
         const action = voteType === 'up' ? upvoteReview : downvoteReview;
         await action(reviewId);
+        addVotedReviewId(reviewId);
 
         setReviews(prevReviews => 
           prevReviews.map(review => {
@@ -67,7 +103,9 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
 
   return (
     <div className="grid grid-cols-1 gap-6">
-      {reviews.map(review => (
+      {reviews.map(review => {
+        const hasVoted = votedReviewIds.includes(review.id);
+        return (
         <Card key={review.id} className="bg-card/50 shadow-sm flex flex-col">
           <CardHeader className="pb-3">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -103,7 +141,8 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
                             variant="ghost"
                             className="h-7 w-7 text-muted-foreground hover:text-primary"
                             onClick={() => handleVote(review.id, 'up')}
-                            disabled={isPending}
+                            disabled={isPending || hasVoted}
+                            aria-label={hasVoted ? "Você já votou" : "Votar positivo"}
                         >
                             <ThumbsUp className="h-4 w-4" />
                         </Button>
@@ -115,7 +154,8 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
                             variant="ghost"
                             className="h-7 w-7 text-muted-foreground hover:text-destructive"
                             onClick={() => handleVote(review.id, 'down')}
-                            disabled={isPending}
+                            disabled={isPending || hasVoted}
+                            aria-label={hasVoted ? "Você já votou" : "Votar negativo"}
                         >
                             <ThumbsDown className="h-4 w-4" />
                         </Button>
@@ -125,7 +165,7 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
             </div>
           </CardFooter>
         </Card>
-      ))}
+      )})}
     </div>
   );
 }

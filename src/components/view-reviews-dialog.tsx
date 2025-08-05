@@ -34,6 +34,8 @@ import { cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
 
 const REPORTED_REVIEWS_KEY = 'reportedReviews';
+const VOTED_REVIEWS_DIALOG_KEY = 'votedReviewsDialog';
+
 
 interface ViewReviewsDialogProps {
     teacher: Teacher;
@@ -45,27 +47,29 @@ export function ViewReviewsDialog({ teacher, children, disabled }: ViewReviewsDi
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
     const [reportedIds, setReportedIds] = useState<number[]>([]);
+    const [votedIds, setVotedIds] = useState<number[]>([]);
+
 
     useEffect(() => {
-        // Load reported IDs from localStorage when the component mounts on the client
         try {
             const storedReported = localStorage.getItem(REPORTED_REVIEWS_KEY);
-            if (storedReported) {
-                setReportedIds(JSON.parse(storedReported));
-            }
+            if (storedReported) setReportedIds(JSON.parse(storedReported));
+            
+            const storedVoted = localStorage.getItem(VOTED_REVIEWS_DIALOG_KEY);
+            if (storedVoted) setVotedIds(JSON.parse(storedVoted));
         } catch (error) {
-            console.error("Failed to parse reported reviews from localStorage", error);
+            console.error("Failed to parse from localStorage", error);
         }
     }, []);
 
-    const addReportedId = (reviewId: number) => {
-        const newReportedIds = [...reportedIds, reviewId];
-        setReportedIds(newReportedIds);
+    const addIdToLocalStorage = (key: string, currentIds: number[], newId: number) => {
+        const newIdList = [...currentIds, newId];
         try {
-            localStorage.setItem(REPORTED_REVIEWS_KEY, JSON.stringify(newReportedIds));
+            localStorage.setItem(key, JSON.stringify(newIdList));
         } catch (error) {
-             console.error("Failed to save reported review to localStorage", error);
+             console.error(`Failed to save to localStorage key ${key}:`, error);
         }
+        return newIdList;
     };
 
 
@@ -74,13 +78,16 @@ export function ViewReviewsDialog({ teacher, children, disabled }: ViewReviewsDi
     }
     
     const handleVote = (reviewId: number, voteType: 'up' | 'down') => {
+        if (votedIds.includes(reviewId)) {
+            toast({ variant: "destructive", title: "Voto já registrado" });
+            return;
+        }
+
         startTransition(async () => {
             try {
-                if (voteType === 'up') {
-                    await upvoteReview(reviewId);
-                } else {
-                    await downvoteReview(reviewId);
-                }
+                const action = voteType === 'up' ? upvoteReview : downvoteReview;
+                await action(reviewId);
+                setVotedIds(addIdToLocalStorage(VOTED_REVIEWS_DIALOG_KEY, votedIds, reviewId));
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : "Ocorreu um erro desconhecido.";
                 toast({
@@ -105,7 +112,7 @@ export function ViewReviewsDialog({ teacher, children, disabled }: ViewReviewsDi
         startTransition(async () => {
             try {
                 await reportReview(reviewId);
-                addReportedId(reviewId);
+                setReportedIds(addIdToLocalStorage(REPORTED_REVIEWS_KEY, reportedIds, reviewId));
                 toast({
                     title: "Avaliação denunciada",
                     description: "Obrigado. Nossa equipe irá analisar a sua denúncia.",
@@ -167,6 +174,7 @@ export function ViewReviewsDialog({ teacher, children, disabled }: ViewReviewsDi
                     <div className="space-y-4">
                         {sortedReviews.length > 0 ? sortedReviews.map((review) => {
                             const isAlreadyReported = reportedIds.includes(review.id);
+                            const hasVoted = votedIds.includes(review.id);
                             const hasText = review.text && review.text.trim() !== '';
                             return (
                             <div key={review.id} className="p-4 border rounded-lg bg-background/50">
@@ -222,7 +230,7 @@ export function ViewReviewsDialog({ teacher, children, disabled }: ViewReviewsDi
                                                 variant="ghost" 
                                                 className="h-7 w-7"
                                                 onClick={() => handleVote(review.id, 'up')}
-                                                disabled={isPending}
+                                                disabled={isPending || hasVoted}
                                             >
                                                 <ThumbsUp className="h-4 w-4" />
                                             </Button>
@@ -234,7 +242,7 @@ export function ViewReviewsDialog({ teacher, children, disabled }: ViewReviewsDi
                                                 variant="ghost" 
                                                 className="h-7 w-7"
                                                 onClick={() => handleVote(review.id, 'down')}
-                                                disabled={isPending}
+                                                disabled={isPending || hasVoted}
                                             >
                                                 <ThumbsDown className="h-4 w-4" />
                                             </Button>
