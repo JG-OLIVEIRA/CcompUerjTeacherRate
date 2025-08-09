@@ -4,7 +4,7 @@
 import { generateId } from "lucia";
 import { db, createPasswordResetToken } from "@/lib/db";
 import { lucia } from "@/lib/auth";
-import { cookies }d' 'from "next/headers";
+import { cookies } from "next/headers";
 import { Resend } from "resend";
 import { pool } from "@/lib/db";
 import MagicLinkEmail from "@/emails/magic-link";

@@ -1,9 +1,9 @@
 
 import { Lucia } from "lucia";
-import * as LuciaPostgres from "@lucia-auth/adapter-postgresql";
+import { PostgreSQLAdapter } from "@lucia-auth/adapter-postgresql";
 import { pool } from "./db";
 
-const adapter = new LuciaPostgres.PostgreSQLAdapter(pool, {
+const adapter = new PostgreSQLAdapter(pool, {
 	user: "auth_user",
 	session: "user_session"
 });
