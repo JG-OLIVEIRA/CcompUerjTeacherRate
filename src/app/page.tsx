@@ -51,7 +51,7 @@ export default async function TeachersPage() {
           <Info className="h-4 w-4 text-primary" />
           <AlertTitle className="text-primary/90">Aviso Importante</AlertTitle>
           <AlertDescription className="text-primary/80">
-            Este site é um projeto para a SAID 2024 e ficará no ar apenas durante o evento. Aproveite para avaliar seus professores!
+            Este site foi criado para te ajudar durante a SAID (Substituição e Abandono de Inscrição em Disciplinas). Aproveite para consultar e adicionar avaliações para fazer a melhor escolha!
           </AlertDescription>
         </Alert>
 
