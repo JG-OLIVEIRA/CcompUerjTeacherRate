@@ -25,6 +25,7 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
   const { toast } = useToast();
  
   useEffect(() => {
+    // This code now safely runs only on the client
     try {
       const voted = localStorage.getItem(VOTED_REVIEWS_KEY_RECENT);
       if (voted) {
@@ -74,18 +75,16 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
 
   const formatDate = (dateString: string | undefined) => {
     if(!dateString) return '';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
-    if (diffInSeconds < 60) return "agora mesmo";
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `há ${diffInMinutes} min`;
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `há ${diffInHours}h`;
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays === 1) return "ontem";
-    return `há ${diffInDays} dias`;
+    try {
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('pt-BR', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        }).format(date);
+    } catch (e) {
+        return "Data inválida";
+    }
   };
 
   if (initialReviews.length === 0) return null;
