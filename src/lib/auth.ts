@@ -1,11 +1,9 @@
 
 import { Lucia } from "lucia";
-import { PostgreSQLAdapter } from "@lucia-auth/adapter-postgresql";
+import * as LuciaPostgres from "@lucia-auth/adapter-postgresql";
 import { pool } from "./db";
-import { web } from "next/dist/build/webpack/config/blocks/mini-css-extract/loaders";
-import { dev } from "local-pkg";
 
-const adapter = new PostgreSQLAdapter(pool, {
+const adapter = new LuciaPostgres.PostgreSQLAdapter(pool, {
 	user: "auth_user",
 	session: "user_session"
 });
