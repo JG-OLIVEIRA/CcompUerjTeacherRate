@@ -63,7 +63,7 @@ export default async function TeachersPage() {
             <p className="text-sm text-muted-foreground px-2">
                 Este espaço foi criado para feedback construtivo. Lembre-se de ser respeitoso em suas avaliações, focando na didática e na sua experiência de aprendizado. O objetivo é ajudar alunos e professores a crescerem juntos.
             </p>
-             <Button asChild variant="link" size="sm" className="text-primary text-center">
+             <Button asChild variant="link" size="sm" className="text-primary text-center h-auto whitespace-normal">
               <Link href="/moderation">
                 <ShieldCheck className="mr-2 h-4 w-4" />
                 Acessar o Painel de Moderação Comunitária
