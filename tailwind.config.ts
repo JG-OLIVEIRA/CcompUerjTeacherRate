@@ -10,7 +10,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
+        body: ['Roboto', 'sans-serif'],
         'headline-retro': ['VT323', 'monospace'],
         code: ['monospace'],
       },

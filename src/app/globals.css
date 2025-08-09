@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 220 13% 98%; /* Off-white, like paper */
-    --foreground: 222.2 47.4% 11.2%; 
-    --card: 0 0% 100%; /* Pure white for cards to pop slightly */
-    --card-foreground: 222.2 47.4% 11.2%;
+    --background: 220 20% 98%; /* Firebase Light Grey Background */
+    --foreground: 220 13% 13%; /* Dark Grey Text */
+    --card: 0 0% 100%; /* White Cards */
+    --card-foreground: 220 13% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%; 
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
+    --popover-foreground: 220 13% 13%;
+    --primary: 38 92% 56%; /* Firebase Amber */
+    --primary-foreground: 220 13% 13%;
+    --secondary: 215 28% 96%; /* Lighter Grey for secondary elements */
+    --secondary-foreground: 220 13% 13%;
+    --muted: 215 28% 96%;
     --muted-foreground: 215.4 16.3% 46.9%; 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 212 92% 51%; /* Firebase Blue */
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%; 
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 47.4% 11.2%;
-    --radius: 0.8rem;
+    --border: 215 20% 90%; 
+    --input: 215 20% 90%;
+    --ring: 212 92% 51%; /* Firebase Blue for rings */
+    --radius: 0.5rem; /* Slightly reduced radius for a more "Googley" feel */
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
