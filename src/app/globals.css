@@ -10,14 +10,14 @@
     --card-foreground: 220 13% 13%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 13%;
-    --primary: 38 92% 56%; /* Firebase Amber */
-    --primary-foreground: 220 13% 13%;
+    --primary: 212 92% 51%; /* Firebase Blue */
+    --primary-foreground: 210 40% 98%; /* White text on blue */
     --secondary: 215 28% 96%; /* Lighter Grey for secondary elements */
     --secondary-foreground: 220 13% 13%;
     --muted: 215 28% 96%;
     --muted-foreground: 215.4 16.3% 46.9%; 
-    --accent: 212 92% 51%; /* Firebase Blue */
-    --accent-foreground: 210 40% 98%;
+    --accent: 215 28% 96%; /* Use secondary as accent for a subtle look */
+    --accent-foreground: 220 13% 13%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 215 20% 90%; 
