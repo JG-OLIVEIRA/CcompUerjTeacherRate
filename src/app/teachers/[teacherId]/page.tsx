@@ -62,6 +62,11 @@ export default async function TeacherProfilePage({ params }: TeacherProfilePageP
     if (!a.createdAt || !b.createdAt) return 0;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
+  
+  const totalReviewCount = teacher.reviews.reduce((acc, review) => {
+    return acc + (review.subjectNames?.length || 1);
+  }, 0);
+
 
   return (
     <MainLayout headerProps={{
@@ -83,7 +88,7 @@ export default async function TeacherProfilePage({ params }: TeacherProfilePageP
                                     </span>
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                    {teacher.reviews.length} {teacher.reviews.length === 1 ? 'avaliação' : 'avaliações'}
+                                    {totalReviewCount} {totalReviewCount === 1 ? 'avaliação' : 'avaliações'}
                                 </p>
                             </div>
                         </div>
@@ -125,9 +130,13 @@ export default async function TeacherProfilePage({ params }: TeacherProfilePageP
                      <div className="space-y-4">
                         {sortedReviews.slice(0, 5).map(review => (
                             <div key={review.id} className="p-4 border rounded-lg bg-background/50">
-                                <div className="flex justify-between items-center mb-2">
+                                <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
                                     <StarRating rating={review.rating} />
-                                    <Badge variant="outline">{review.subjectName}</Badge>
+                                    <div className="flex flex-wrap gap-1">
+                                    {review.subjectNames?.map((sName, index) => (
+                                        <Badge key={`${review.id}-${review.subjectIds?.[index]}`} variant="outline">{sName}</Badge>
+                                    ))}
+                                    </div>
                                 </div>
                                 {review.text && review.text.trim() !== '' ? (
                                     <blockquote className="text-sm text-foreground italic border-l-4 pl-4 my-3">

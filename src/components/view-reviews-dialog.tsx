@@ -179,9 +179,13 @@ export function ViewReviewsDialog({ teacher, children, disabled }: ViewReviewsDi
                             return (
                             <div key={review.id} className="p-4 border rounded-lg bg-background/50">
                                 <div className="flex justify-between items-start mb-2">
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 flex-wrap">
                                         <StarRating rating={review.rating} />
-                                        {review.subjectName && <Badge variant="outline">{review.subjectName}</Badge>}
+                                        <div className="flex flex-wrap gap-1">
+                                            {review.subjectNames?.map((sName, index) => (
+                                                <Badge key={`${review.id}-${review.subjectIds?.[index]}`} variant="outline">{sName}</Badge>
+                                            ))}
+                                        </div>
                                     </div>
                                      <AlertDialog>
                                         <AlertDialogTrigger asChild>
