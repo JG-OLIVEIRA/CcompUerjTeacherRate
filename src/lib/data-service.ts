@@ -341,22 +341,61 @@ export async function getRecentReviews(): Promise<Review[]> {
             JOIN subjects s ON r.subject_id = s.id
             WHERE r.reported = false AND r.text IS NOT NULL AND r.text <> ''
             ORDER BY r.created_at DESC
-            LIMIT 3;
+            LIMIT 15; -- Fetch more to allow for grouping
         `;
         const result = await client.query(query);
-        return result.rows.map(row => ({
-            id: row.id,
-            text: row.text || '',
-            rating: row.rating || 0,
-            upvotes: row.upvotes || 0,
-            downvotes: row.downvotes || 0,
-            report_count: row.report_count || 0,
-            createdAt: row.created_at?.toISOString() || '',
-            teacherId: row.teacher_id,
-            teacherName: row.teacher_name,
-            subjectId: row.subject_id,
-            subjectName: row.subject_name,
-        }));
+
+        if (result.rows.length === 0) {
+            return [];
+        }
+
+        // Group reviews by text, teacher, rating, and similar timestamp
+        const groupedReviewsMap = new Map<string, Review>();
+
+        result.rows.forEach(row => {
+            const createdAt = new Date(row.created_at);
+            // Group by day, teacher, and text content
+            const groupKey = `${createdAt.toISOString().slice(0, 10)}:${row.teacher_id}:${row.text}`;
+
+            let entry = groupedReviewsMap.get(groupKey);
+
+            if (!entry) {
+                // This is a new review group
+                entry = {
+                    id: row.id, // Use the ID of the first review in the group
+                    text: row.text || '',
+                    rating: row.rating || 0,
+                    upvotes: row.upvotes || 0,
+                    downvotes: row.downvotes || 0,
+                    report_count: row.report_count || 0,
+                    createdAt: createdAt.toISOString(),
+                    teacherId: row.teacher_id,
+                    teacherName: row.teacher_name,
+                    subjectIds: [row.subject_id],
+                    subjectNames: [row.subject_name],
+                };
+            } else {
+                // Add subject to existing group, if not already present
+                if (!entry.subjectIds?.includes(row.subject_id)) {
+                    entry.subjectIds?.push(row.subject_id);
+                    entry.subjectNames?.push(row.subject_name);
+                }
+                // Use the latest created_at and the highest ID for consistency
+                if (createdAt > new Date(entry.createdAt!)) {
+                    entry.createdAt = createdAt.toISOString();
+                    entry.id = row.id;
+                }
+            }
+            groupedReviewsMap.set(groupKey, entry);
+        });
+        
+        // Convert map to array, sort by date and take the top 3 groups
+        const uniqueReviews = Array.from(groupedReviewsMap.values())
+            .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
+            .slice(0, 3);
+
+        return uniqueReviews;
+
     } catch (error) {
         console.error("Erro ao buscar avaliações recentes:", error);
         return [];
@@ -500,7 +539,8 @@ export async function getTeacherById(teacherId: number): Promise<Teacher | null>
                 r.downvotes,
                 r.created_at,
                 r.report_count,
-                s.name as subject_name
+                s.name as subject_name,
+                s.id as subject_id
             FROM reviews r
             JOIN subjects s ON r.subject_id = s.id
             WHERE r.teacher_id = $1 AND r.reported = false
@@ -519,6 +559,7 @@ export async function getTeacherById(teacherId: number): Promise<Teacher | null>
                 report_count: row.report_count || 0,
                 createdAt: row.created_at?.toISOString() || '',
                 subjectName: row.subject_name,
+                subjectId: row.subject_id,
             });
             teacher.subjects!.add(row.subject_name);
         }
@@ -629,6 +670,64 @@ export async function getPlatformStats(): Promise<{ totalTeachers: number; total
     } catch (error) {
         console.error("Erro ao buscar estatísticas da plataforma:", error);
         return { totalTeachers: 0, totalReviews: 0, newReviewsThisWeek: 0 };
+    } finally {
+        client.release();
+    }
+}
+
+export async function getSubjectLinks(): Promise<SubjectLink[]> {
+    const client = await pool.connect();
+    try {
+        const query = `
+            SELECT 
+                s.id as subject_id,
+                s.name as subject_name,
+                sl.link_url
+            FROM subjects s
+            LEFT JOIN subject_links sl ON s.id = sl.subject_id
+            ORDER BY s.name;
+        `;
+        const result = await client.query(query);
+
+        return result.rows.map(row => ({
+            subjectId: row.subject_id,
+            subjectName: row.subject_name,
+            linkUrl: row.link_url,
+            iconName: assignIconName(row.subject_name),
+        }));
+    } catch (error) {
+        console.error("Error fetching subject links:", error);
+        throw new Error("Failed to fetch subject links.");
+    } finally {
+        client.release();
+    }
+}
+
+export async function upsertSubjectLink(subjectId: number, linkUrl: string): Promise<void> {
+    const client = await pool.connect();
+    try {
+        const query = `
+            INSERT INTO subject_links (subject_id, link_url)
+            VALUES ($1, $2)
+            ON CONFLICT (subject_id) DO UPDATE
+            SET link_url = EXCLUDED.link_url;
+        `;
+        await client.query(query, [subjectId, linkUrl]);
+    } catch (error) {
+        console.error("Error upserting subject link:", error);
+        throw new Error("Failed to save subject link.");
+    } finally {
+        client.release();
+    }
+}
+
+export async function deleteSubjectLink(subjectId: number): Promise<void> {
+    const client = await pool.connect();
+    try {
+        await client.query('DELETE FROM subject_links WHERE subject_id = $1', [subjectId]);
+    } catch (error) {
+        console.error("Error deleting subject link:", error);
+        throw new Error("Failed to delete subject link.");
     } finally {
         client.release();
     }

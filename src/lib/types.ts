@@ -11,8 +11,11 @@ export interface Review {
   reported?: boolean;
   teacherId?: number;
   teacherName?: string;
-  subjectId?: number;
-  subjectName?: string;
+  subjectId?: number; // Kept for individual review context
+  subjectName?: string; // Kept for individual review context
+  // For grouped reviews
+  subjectIds?: number[];
+  subjectNames?: string[];
 }
 
 export interface Teacher {
@@ -29,4 +32,11 @@ export interface Subject {
   name: string;
   iconName: string;
   teachers: Teacher[];
+}
+
+export interface SubjectLink {
+  subjectId: number;
+  subjectName: string;
+  linkUrl: string | null;
+  iconName: string;
 }

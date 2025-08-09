@@ -11,6 +11,7 @@ import { upvoteReview, downvoteReview } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { Badge } from './ui/badge';
 
 interface RecentReviewsProps {
   initialReviews: Review[];
@@ -128,10 +129,14 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
                         <User className="h-4 w-4" />
                         <span className="font-medium truncate group-hover:underline group-hover:text-primary">{review.teacherName}</span>
                     </Link>
-                    <Link href={`/subjects/${review.subjectId}`} className="flex items-center gap-1.5 group" title={`Matéria ${review.subjectName}`}>
-                        <Book className="h-4 w-4" />
-                        <span className="font-medium truncate group-hover:underline group-hover:text-primary">{review.subjectName}</span>
-                    </Link>
+                    <div className="flex items-center gap-1.5 flex-wrap" title={`Matérias`}>
+                      <Book className="h-4 w-4" />
+                      {review.subjectNames?.map((subjectName, index) => (
+                        <Link href={`/subjects/${review.subjectIds?.[index]}`} key={`${review.id}-${review.subjectIds?.[index]}`}>
+                          <Badge variant="secondary" className="hover:bg-primary/20 transition-colors">{subjectName}</Badge>
+                        </Link>
+                      ))}
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-4 self-end sm:self-center">
