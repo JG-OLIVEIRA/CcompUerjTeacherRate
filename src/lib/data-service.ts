@@ -245,6 +245,45 @@ export async function getAllSubjectNames(): Promise<string[]> {
     }
 }
 
+// Helper function to group reviews
+const groupReviews = (reviews: any[]): Review[] => {
+    const reviewMap = new Map<string, Review>();
+
+    reviews.forEach(row => {
+        // A unique key for a conceptual review (same teacher, text, rating, and timestamp)
+        const createdAt = new Date(row.created_at);
+        const groupKey = `${row.teacher_id}:${row.text}:${row.rating}:${createdAt.toISOString()}`;
+
+        if (!reviewMap.has(groupKey)) {
+            reviewMap.set(groupKey, {
+                id: row.id,
+                text: row.text,
+                rating: row.rating,
+                upvotes: row.upvotes,
+                downvotes: row.downvotes,
+                report_count: row.report_count,
+                createdAt: createdAt.toISOString(),
+                teacherId: row.teacher_id,
+                teacherName: row.teacher_name,
+                subjectIds: [],
+                subjectNames: [],
+            });
+        }
+
+        const review = reviewMap.get(groupKey)!;
+        if (!review.subjectIds?.includes(row.subject_id)) {
+            review.subjectIds?.push(row.subject_id);
+            review.subjectNames?.push(row.subject_name);
+        }
+        // Use the highest review ID for the group to ensure the link is valid
+        if (row.id > review.id) {
+            review.id = row.id;
+        }
+    });
+
+    return Array.from(reviewMap.values());
+};
+
 
 export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
     const client = await pool.connect();
@@ -265,9 +304,9 @@ export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
         const reviewsQuery = `
             SELECT 
                 r.teacher_id,
-                r.id as review_id,
-                r.text as review_text,
-                r.rating as review_rating,
+                r.id,
+                r.text,
+                r.rating,
                 r.upvotes,
                 r.downvotes,
                 r.created_at,
@@ -281,70 +320,37 @@ export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
         `;
         const reviewsResult = await client.query(reviewsQuery);
         
-        const allRawReviews: Review[] = [];
+        // This map will store all reviews for a teacher to calculate the overall average rating.
+        const allReviewsByTeacher = new Map<number, Review[]>();
+
+        reviewsResult.rows.forEach(row => {
+            if (!allReviewsByTeacher.has(row.teacher_id)) {
+                allReviewsByTeacher.set(row.teacher_id, []);
+            }
+            allReviewsByTeacher.get(row.teacher_id)!.push({
+                id: row.id,
+                rating: row.rating
+            } as Review);
+
+            const teacher = teachersMap.get(row.teacher_id);
+            if (teacher && row.subject_name) {
+                (teacher.subjects as Set<string>).add(row.subject_name);
+            }
+        });
+
+        // Group reviews to handle multi-subject entries
+        const groupedReviews = groupReviews(reviewsResult.rows);
         
-        // First pass: collect all raw reviews and subjects for each teacher
-        for (const row of reviewsResult.rows) {
-            let teacher = teachersMap.get(row.teacher_id);
-            if (teacher) {
-                if (row.subject_name) {
-                    (teacher.subjects as Set<string>).add(row.subject_name);
-                }
-                allRawReviews.push({
-                    id: row.review_id,
-                    text: row.review_text,
-                    rating: row.review_rating,
-                    upvotes: row.upvotes,
-                    downvotes: row.downvotes,
-                    createdAt: row.created_at.toISOString(),
-                    report_count: row.report_count,
-                    teacherId: row.teacher_id,
-                    subjectId: row.subject_id,
-                    subjectName: row.subject_name,
-                });
+        groupedReviews.forEach(review => {
+            if (review.teacherId && teachersMap.has(review.teacherId)) {
+                teachersMap.get(review.teacherId)!.reviews.push(review);
             }
-        }
-        
-        // Second pass: group reviews and assign to teachers
-        const groupedReviewsMap = new Map<number, Map<string, Review>>();
+        });
 
-        for (const review of allRawReviews) {
-            if (!groupedReviewsMap.has(review.teacherId!)) {
-                groupedReviewsMap.set(review.teacherId!, new Map<string, Review>());
-            }
-            const teacherReviewMap = groupedReviewsMap.get(review.teacherId!)!;
-            
-            const createdAt = new Date(review.createdAt!);
-            const groupKey = `${review.text}:${review.rating}:${createdAt.toISOString()}`;
-
-            let entry = teacherReviewMap.get(groupKey);
-            if (!entry) {
-                 entry = {
-                    ...review,
-                    subjectIds: [review.subjectId!],
-                    subjectNames: [review.subjectName!],
-                };
-            } else {
-                 if (!entry.subjectIds?.includes(review.subjectId!)) {
-                    entry.subjectIds?.push(review.subjectId!);
-                    entry.subjectNames?.push(review.subjectName!);
-                }
-                 if (review.id > entry.id) {
-                    entry.id = review.id;
-                }
-            }
-            teacherReviewMap.set(groupKey, entry);
-        }
-
-        // Final pass: calculate averages and assign grouped reviews
         const teacherList = Array.from(teachersMap.values());
         for (const teacher of teacherList) {
-            teacher.averageRating = calculateAverageRating(allRawReviews.filter(r => r.teacherId === teacher.id));
-            
-            const groupedForTeacher = groupedReviewsMap.get(teacher.id);
-            if(groupedForTeacher) {
-                teacher.reviews = Array.from(groupedForTeacher.values());
-            }
+            const allReviewsForTeacher = allReviewsByTeacher.get(teacher.id) || [];
+            teacher.averageRating = calculateAverageRating(allReviewsForTeacher);
         }
 
         return teacherList.sort((a,b) => a.name.localeCompare(b.name));
@@ -378,59 +384,23 @@ export async function getRecentReviews(): Promise<Review[]> {
             JOIN subjects s ON r.subject_id = s.id
             WHERE r.reported = false AND r.text IS NOT NULL AND r.text <> ''
             ORDER BY r.created_at DESC
-            LIMIT 15; -- Fetch more to allow for grouping
+            LIMIT 3;
         `;
         const result = await client.query(query);
 
-        if (result.rows.length === 0) {
-            return [];
-        }
-
-        // Group reviews by text, teacher, rating, and similar timestamp
-        const groupedReviewsMap = new Map<string, Review>();
-
-        result.rows.forEach(row => {
-            const createdAt = new Date(row.created_at);
-            // Group by teacher, text, rating and the exact timestamp to catch submissions made at the same time.
-            const groupKey = `${row.teacher_id}:${row.text}:${row.rating}:${createdAt.toISOString()}`;
-
-            let entry = groupedReviewsMap.get(groupKey);
-
-            if (!entry) {
-                // This is a new review group
-                entry = {
-                    id: row.id, // Use the ID of the first review in the group
-                    text: row.text || '',
-                    rating: row.rating || 0,
-                    upvotes: row.upvotes || 0,
-                    downvotes: row.downvotes || 0,
-                    report_count: row.report_count || 0,
-                    createdAt: createdAt.toISOString(),
-                    teacherId: row.teacher_id,
-                    teacherName: row.teacher_name,
-                    subjectIds: [row.subject_id],
-                    subjectNames: [row.subject_name],
-                };
-            } else {
-                // Add subject to existing group, if not already present
-                if (!entry.subjectIds?.includes(row.subject_id)) {
-                    entry.subjectIds?.push(row.subject_id);
-                    entry.subjectNames?.push(row.subject_name);
-                }
-                // Use the highest ID for consistency, assuming higher ID is later.
-                 if (row.id > entry.id) {
-                    entry.id = row.id;
-                }
-            }
-            groupedReviewsMap.set(groupKey, entry);
-        });
-        
-        // Convert map to array, sort by date and take the top 3 groups
-        const uniqueReviews = Array.from(groupedReviewsMap.values())
-            .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
-            .slice(0, 3);
-
-        return uniqueReviews;
+        return result.rows.map(row => ({
+            id: row.id,
+            text: row.text || '',
+            rating: row.rating || 0,
+            upvotes: row.upvotes || 0,
+            downvotes: row.downvotes || 0,
+            createdAt: row.created_at?.toISOString() || '',
+            report_count: row.report_count || 0,
+            teacherId: row.teacher_id,
+            teacherName: row.teacher_name,
+            subjectIds: [row.subject_id],
+            subjectNames: [row.subject_name],
+        }));
 
     } catch (error) {
         console.error("Erro ao buscar avaliações recentes:", error);
@@ -558,13 +528,7 @@ export async function getTeacherById(teacherId: number): Promise<Teacher | null>
             return null;
         }
 
-        const teacher: Teacher = {
-            id: teacherResult.rows[0].id,
-            name: teacherResult.rows[0].name,
-            reviews: [],
-            subjects: new Set<string>(),
-            averageRating: 0,
-        };
+        const teacherData = teacherResult.rows[0];
 
         const reviewsQuery = `
             SELECT
@@ -576,56 +540,31 @@ export async function getTeacherById(teacherId: number): Promise<Teacher | null>
                 r.created_at,
                 r.report_count,
                 s.name as subject_name,
-                s.id as subject_id
+                s.id as subject_id,
+                r.teacher_id,
+                t.name as teacher_name
             FROM reviews r
             JOIN subjects s ON r.subject_id = s.id
+            JOIN teachers t on r.teacher_id = t.id
             WHERE r.teacher_id = $1 AND r.reported = false
             ORDER BY r.created_at DESC;
         `;
-
         const reviewsResult = await client.query(reviewsQuery, [teacherId]);
-
+        
         const allReviewsForAverage: Review[] = reviewsResult.rows.map(row => ({
             id: row.id,
             rating: row.rating
         } as Review));
+        
+        const allSubjects = new Set<string>(reviewsResult.rows.map(r => r.subject_name));
 
-        teacher.averageRating = calculateAverageRating(allReviewsForAverage);
-
-        const groupedReviewsMap = new Map<string, Review>();
-
-        for (const row of reviewsResult.rows) {
-            const createdAt = new Date(row.created_at);
-            const groupKey = `${row.text}:${row.rating}:${createdAt.toISOString()}`;
-            
-            let entry = groupedReviewsMap.get(groupKey);
-            
-            if (!entry) {
-                entry = {
-                    id: row.id,
-                    text: row.text || '',
-                    rating: row.rating || 0,
-                    upvotes: row.upvotes || 0,
-                    downvotes: row.downvotes || 0,
-                    report_count: row.report_count || 0,
-                    createdAt: createdAt.toISOString(),
-                    subjectIds: [row.subject_id],
-                    subjectNames: [row.subject_name],
-                };
-            } else {
-                 if (!entry.subjectIds?.includes(row.subject_id)) {
-                    entry.subjectIds?.push(row.subject_id);
-                    entry.subjectNames?.push(row.subject_name);
-                }
-                 if (row.id > entry.id) {
-                    entry.id = row.id;
-                }
-            }
-            groupedReviewsMap.set(groupKey, entry);
-            teacher.subjects!.add(row.subject_name);
-        }
-
-        teacher.reviews = Array.from(groupedReviewsMap.values());
+        const teacher: Teacher = {
+            id: teacherData.id,
+            name: teacherData.name,
+            reviews: groupReviews(reviewsResult.rows),
+            subjects: allSubjects,
+            averageRating: calculateAverageRating(allReviewsForAverage),
+        };
         
         return teacher;
 

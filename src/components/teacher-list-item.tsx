@@ -16,9 +16,7 @@ interface TeacherListItemProps {
 export default function TeacherListItem({ teacher }: TeacherListItemProps) {
   const { id, name, averageRating = 0, reviews, subjects } = teacher;
 
-  const totalReviewCount = reviews.reduce((acc, review) => {
-    return acc + (review.subjectNames?.length || 1);
-  }, 0);
+  const totalReviewCount = reviews.length;
 
 
   return (

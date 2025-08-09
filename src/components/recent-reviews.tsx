@@ -21,7 +21,7 @@ const VOTED_REVIEWS_KEY_RECENT = 'votedReviewsRecent';
 
 export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
   const [isPending, startTransition] = useTransition();
-  const [votedReviewIds, setVotedReviewIds] = useState<number[]>([]);
+  const [votedReviewIds, setVotedReviewIds] = useState<Set<number>>(new Set());
   const { toast } = useToast();
  
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
     try {
       const voted = localStorage.getItem(VOTED_REVIEWS_KEY_RECENT);
       if (voted) {
-        setVotedReviewIds(JSON.parse(voted));
+        setVotedReviewIds(new Set(JSON.parse(voted)));
       }
     } catch (error) {
       console.error("Failed to parse voted reviews from localStorage", error);
@@ -37,17 +37,19 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
   }, []);
 
   const addVotedReviewId = (reviewId: number) => {
-    const newVotedIds = [...votedReviewIds, reviewId];
+    const newVotedIds = new Set(votedReviewIds);
+    newVotedIds.add(reviewId);
     setVotedReviewIds(newVotedIds);
     try {
-      localStorage.setItem(VOTED_REVIEWS_KEY_RECENT, JSON.stringify(newVotedIds));
+      // localStorage only stores strings
+      localStorage.setItem(VOTED_REVIEWS_KEY_RECENT, JSON.stringify(Array.from(newVotedIds)));
     } catch (error) {
       console.error("Failed to save voted review to localStorage", error);
     }
   };
 
   const handleVote = (reviewId: number, voteType: 'up' | 'down') => {
-    if (votedReviewIds.includes(reviewId)) {
+    if (votedReviewIds.has(reviewId)) {
         toast({
             variant: 'destructive',
             title: 'Voto já registrado',
@@ -92,7 +94,7 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {initialReviews.map(review => {
-            const hasVoted = votedReviewIds.includes(review.id);
+            const hasVoted = votedReviewIds.has(review.id);
             return (
                 <div key={review.id} className="p-1 h-full">
                     <Card className="bg-card/50 shadow-sm flex flex-col h-full">

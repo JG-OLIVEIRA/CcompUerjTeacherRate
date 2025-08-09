@@ -1,5 +1,4 @@
 
-
 import { BookOpen, Megaphone, ShieldCheck, MessageSquareQuote, Info } from 'lucide-react';
 import Link from 'next/link';
 import { getTeachersWithGlobalStats, getRecentReviews, getPlatformStats, getAllSubjectNames } from '@/lib/data-service';

@@ -20,33 +20,38 @@ export default function WelcomeReviewHandler({ teachers, onSubmit }: WelcomeRevi
         // This entire block now runs only on the client-side to prevent hydration errors.
         const hasBeenShown = sessionStorage.getItem(SESSION_STORAGE_KEY);
         
-        if (!hasBeenShown) {
-            let selectedTeacher: Teacher | null = null;
-            
-            // Filter teachers with no reviews
-            const teachersWithNoReviews = teachers.filter(t => t.reviews.length === 0);
-            
-            if (teachersWithNoReviews.length > 0) {
-                // If there are teachers with no reviews, pick one at random
-                selectedTeacher = teachersWithNoReviews[Math.floor(Math.random() * teachersWithNoReviews.length)];
-            } else {
-                // Otherwise, find one with less than 2 reviews to prompt for more feedback
-                const teachersWithFewReviews = teachers.filter(t => t.reviews.length > 0 && t.reviews.length < 2);
-                if (teachersWithFewReviews.length > 0) {
-                    // Pick a random teacher from this smaller pool
-                    selectedTeacher = teachersWithFewReviews[Math.floor(Math.random() * teachersWithFewReviews.length)];
-                }
-            }
+        if (hasBeenShown) {
+            return;
+        }
 
-            // Only set the teacher and open the dialog if one was selected and has subjects
-            if (selectedTeacher && selectedTeacher.subjects && selectedTeacher.subjects.size > 0) {
-                setTeacherToPrompt(selectedTeacher);
-                const timer = setTimeout(() => {
-                    setIsDialogOpen(true);
-                    sessionStorage.setItem(SESSION_STORAGE_KEY, 'true');
-                }, 1500);
-                return () => clearTimeout(timer);
+        let selectedTeacher: Teacher | null = null;
+        
+        // Filter teachers with no reviews
+        const teachersWithNoReviews = teachers.filter(t => t.reviews.length === 0 && t.subjects && t.subjects.size > 0);
+        
+        if (teachersWithNoReviews.length > 0) {
+            // If there are teachers with no reviews, pick one at random
+            selectedTeacher = teachersWithNoReviews[Math.floor(Math.random() * teachersWithNoReviews.length)];
+        } else {
+            // Otherwise, find one with less than 2 reviews to prompt for more feedback
+            const teachersWithFewReviews = teachers.filter(t => t.reviews.length > 0 && t.reviews.length < 2 && t.subjects && t.subjects.size > 0);
+            if (teachersWithFewReviews.length > 0) {
+                // Pick a random teacher from this smaller pool
+                selectedTeacher = teachersWithFewReviews[Math.floor(Math.random() * teachersWithFewReviews.length)];
             }
+        }
+
+        // Only set the teacher and open the dialog if one was selected
+        if (selectedTeacher) {
+            setTeacherToPrompt(selectedTeacher);
+            const timer = setTimeout(() => {
+                setIsDialogOpen(true);
+                sessionStorage.setItem(SESSION_STORAGE_KEY, 'true');
+            }, 1500);
+            return () => clearTimeout(timer);
+        } else {
+             // If no suitable teacher is found, still mark as shown to avoid re-checking in the same session
+             sessionStorage.setItem(SESSION_STORAGE_KEY, 'true');
         }
     }, [teachers]);
 

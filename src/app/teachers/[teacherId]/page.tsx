@@ -12,8 +12,6 @@ import { Separator } from '@/components/ui/separator';
 import { ViewReviewsDialog } from '@/components/view-reviews-dialog';
 import { handleAddTeacherOrReview } from '@/app/actions';
 import { AddTeacherOrReviewDialog } from '@/components/add-teacher-or-review-dialog';
-import { Suspense } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface TeacherProfilePageProps {
   params: {
@@ -63,9 +61,7 @@ export default async function TeacherProfilePage({ params }: TeacherProfilePageP
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
   
-  const totalReviewCount = teacher.reviews.reduce((acc, review) => {
-    return acc + (review.subjectNames?.length || 1);
-  }, 0);
+  const totalReviewCount = teacher.reviews.length;
 
 
   return (
@@ -88,7 +84,7 @@ export default async function TeacherProfilePage({ params }: TeacherProfilePageP
                                     </span>
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                    {totalReviewCount} {totalReviewCount === 1 ? 'avaliação' : 'avaliações'}
+                                    {totalReviewCount} {totalReviewCount === 1 ? 'avaliação' : 'avaliações'} no total
                                 </p>
                             </div>
                         </div>
