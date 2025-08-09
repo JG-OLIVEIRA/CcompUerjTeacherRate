@@ -1,5 +1,6 @@
 
-import { BookOpen, Megaphone, ShieldCheck, MessageSquareQuote } from 'lucide-react';
+
+import { BookOpen, Megaphone, ShieldCheck, MessageSquareQuote, Info } from 'lucide-react';
 import Link from 'next/link';
 import { getTeachersWithGlobalStats, getRecentReviews, getPlatformStats, getAllSubjectNames } from '@/lib/data-service';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import RecentReviews from '@/components/recent-reviews';
 import { Separator } from '@/components/ui/separator';
 import StatsCards from '@/components/stats-cards';
 import type { Teacher } from '@/lib/types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +33,7 @@ export default async function TeachersPage() {
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
           O lugar central para encontrar e avaliar os professores de Ciência da Computação da UERJ.
         </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
             <AddTeacherOrReviewDialog
                 allSubjectNames={allSubjectNames}
                 allTeachers={teachers} // Pass the full teacher objects
@@ -44,6 +46,14 @@ export default async function TeachersPage() {
                 </Link>
             </Button>
         </div>
+
+        <Alert className="max-w-2xl text-left mb-6 border-primary/50 bg-primary/10">
+          <Info className="h-4 w-4 text-primary" />
+          <AlertTitle className="text-primary/90">Aviso Importante</AlertTitle>
+          <AlertDescription className="text-primary/80">
+            Este site é um projeto para a SAID 2024 e ficará no ar apenas durante o evento. Aproveite para avaliar seus professores!
+          </AlertDescription>
+        </Alert>
 
         <div className="mt-8 max-w-3xl w-full p-4 bg-secondary/50 border border-primary/20 rounded-lg text-center space-y-2">
             <div className="flex items-center justify-center gap-2">
