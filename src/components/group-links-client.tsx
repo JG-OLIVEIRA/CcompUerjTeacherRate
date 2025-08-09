@@ -6,7 +6,7 @@ import type { SubjectLink } from '@/lib/types';
 import * as LucideIcons from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Input } from './ui/input';
-import { Button } from './ui/button';
+import { Button, buttonVariants } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { upsertSubjectLink, deleteSubjectLink } from '@/app/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
@@ -114,7 +114,7 @@ export default function GroupLinksClient({ initialLinks }: GroupLinksClientProps
                            ) : (
                                 link.linkUrl ? (
                                     <Button asChild variant="outline" className="w-full">
-                                        <a href={currentLinkValue || link.linkUrl} target="_blank" rel="noopener noreferrer">
+                                        <a href={link.linkUrl} target="_blank" rel="noopener noreferrer">
                                             <ExternalLink className="mr-2 h-4 w-4"/>
                                             Abrir Link do Grupo
                                         </a>
