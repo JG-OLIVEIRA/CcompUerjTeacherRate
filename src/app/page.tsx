@@ -51,7 +51,7 @@ export default async function TeachersPage() {
           <Info className="h-4 w-4 text-primary" />
           <AlertTitle className="text-primary/90">Aviso Importante</AlertTitle>
           <AlertDescription className="text-primary/80">
-            Este site foi criado para te ajudar durante a SAID (Substituição e Abandono de Inscrição em Disciplinas). Aproveite para consultar e adicionar avaliações para fazer a melhor escolha!
+            Este site foi criado para te auxiliar durante o período de inscrição em disciplinas, mas continuará no ar para consulta até o fim da SAID (Substituição e Abandono de Inscrição em Disciplinas). Aproveite!
           </AlertDescription>
         </Alert>
 
