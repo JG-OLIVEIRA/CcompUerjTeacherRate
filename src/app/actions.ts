@@ -102,3 +102,31 @@ export async function handleRequest(data: { professorName: string; email: string
         return { success: false, message: errorMessage };
     }
 }
+
+/**
+ * Server action to add or update a subject link.
+ */
+export async function upsertSubjectLink(data: { subjectId: number; linkUrl: string; }) {
+    try {
+        await DataService.upsertSubjectLink(data.subjectId, data.linkUrl);
+        revalidatePath('/grupos');
+        return { success: true, message: 'Link salvo com sucesso!' };
+    } catch (error) {
+        console.error("Error upserting subject link:", error);
+        return { success: false, message: 'Falha ao salvar o link.' };
+    }
+}
+
+/**
+ * Server action to delete a subject link.
+ */
+export async function deleteSubjectLink(subjectId: number) {
+    try {
+        await DataService.deleteSubjectLink(subjectId);
+        revalidatePath('/grupos');
+        return { success: true, message: 'Link removido com sucesso!' };
+    } catch (error) {
+        console.error("Error deleting subject link:", error);
+        return { success: false, message: 'Falha ao remover o link.' };
+    }
+}

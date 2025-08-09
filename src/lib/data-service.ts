@@ -6,7 +6,7 @@
  * a um banco de dados PostgreSQL para persistir os dados da aplicação.
  */
 import 'server-only';
-import type { Subject, Teacher, Review } from './types';
+import type { Subject, Teacher, Review, SubjectLink } from './types';
 import { pool } from './db';
 
 
@@ -634,4 +634,62 @@ export async function getPlatformStats(): Promise<{ totalTeachers: number; total
     }
 }
 
-    
+
+// Functions for Subject Links (WhatsApp Groups)
+
+export async function getSubjectLinks(): Promise<SubjectLink[]> {
+    const client = await pool.connect();
+    try {
+        const query = `
+            SELECT 
+                s.id as subject_id,
+                s.name as subject_name,
+                sl.link_url
+            FROM subjects s
+            LEFT JOIN subject_links sl ON s.id = sl.subject_id
+            ORDER BY s.name;
+        `;
+        const result = await client.query(query);
+        return result.rows.map(row => ({
+            subjectId: row.subject_id,
+            subjectName: row.subject_name,
+            linkUrl: row.link_url || null,
+            iconName: assignIconName(row.subject_name)
+        }));
+    } catch (error) {
+        console.error("Error fetching subject links:", error);
+        throw new Error("Failed to fetch subject links.");
+    } finally {
+        client.release();
+    }
+}
+
+export async function upsertSubjectLink(subjectId: number, linkUrl: string): Promise<void> {
+    const client = await pool.connect();
+    try {
+        const query = `
+            INSERT INTO subject_links (subject_id, link_url)
+            VALUES ($1, $2)
+            ON CONFLICT (subject_id)
+            DO UPDATE SET link_url = $2;
+        `;
+        await client.query(query, [subjectId, linkUrl]);
+    } catch (error) {
+        console.error("Error upserting subject link:", error);
+        throw new Error("Failed to save subject link.");
+    } finally {
+        client.release();
+    }
+}
+
+export async function deleteSubjectLink(subjectId: number): Promise<void> {
+    const client = await pool.connect();
+    try {
+        await client.query('DELETE FROM subject_links WHERE subject_id = $1', [subjectId]);
+    } catch (error) {
+        console.error("Error deleting subject link:", error);
+        throw new Error("Failed to delete subject link.");
+    } finally {
+        client.release();
+    }
+}

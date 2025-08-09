@@ -13,15 +13,10 @@ export default function SubjectsHeaderActions() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar para Professores
             </Link>
-            <a
-                href="https://hackmd.io/@rMoy5VzZSwKKbif_E09fBw/BJEaUJ2cT"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(buttonVariants({ variant: "default" }))}
-            >
+            <Link href="/grupos" className={cn(buttonVariants({ variant: "default" }))}>
                 <MessageSquareText className="mr-2 h-4 w-4" />
                 Grupos de WhatsApp
-            </a>
+            </Link>
         </div>
     )
 }
