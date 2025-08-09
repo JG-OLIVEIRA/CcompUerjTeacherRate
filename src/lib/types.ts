@@ -30,10 +30,3 @@ export interface Subject {
   iconName: string;
   teachers: Teacher[];
 }
-
-export interface SubjectLink {
-  subjectId: number;
-  subjectName: string;
-  linkUrl: string | null;
-  iconName: string;
-}
