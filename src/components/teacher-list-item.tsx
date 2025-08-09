@@ -24,7 +24,7 @@ export default function TeacherListItem({ teacher }: TeacherListItemProps) {
       <Card 
           className={cn(
               "w-full hover:shadow-lg transition-all duration-300 flex flex-col justify-between cursor-pointer",
-              "border-2 border-transparent hover:border-primary"
+              "border-2 border-transparent hover:border-primary bg-card/50"
           )}
       >
         <CardHeader className="pb-2">
@@ -42,7 +42,7 @@ export default function TeacherListItem({ teacher }: TeacherListItemProps) {
         </CardContent>
          <CardFooter className="flex-col items-start gap-4 pt-4">
            <div>
-              <h4 className="text-xs font-semibold text-muted-foreground mb-2">Matérias Lecionadas</h4>
+              <h4 className="text-xs font-semibold text-muted-foreground mb-2">Principais Matérias</h4>
               {subjects && subjects.size > 0 ? (
                   <div className="flex flex-wrap gap-1">
                       {Array.from(subjects).sort().slice(0, 3).map((subjectName) => (
