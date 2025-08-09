@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import type { Subject, Teacher } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
-import { Lightbulb, Star, ChevronRight } from 'lucide-react';
+import { Lightbulb, Star } from 'lucide-react';
 import { Badge } from './ui/badge';
 import Link from 'next/link';
 import { prerequisites } from './course-flowchart';
@@ -50,29 +50,13 @@ export default function RecommendationSection({ allSubjects, completedSubjects, 
 
   }, [completedSubjects, allSubjects, allTeachers]);
   
-  const nextAvailableSubjects = useMemo(() => {
-    const completedSet = new Set(completedSubjects);
-    const recommendedSet = new Set(recommendations.map(r => r.subjectName));
-    
-    const available = allSubjects.filter(subject => {
-        if (completedSet.has(subject.name) || recommendedSet.has(subject.name)) {
-            return false;
-        }
-        const subjectPrereqs = prerequisites[subject.name] || [];
-        return subjectPrereqs.every(prereq => completedSet.has(prereq));
-    });
-
-    return available;
-  }, [allSubjects, completedSubjects, recommendations]);
-
   if (completedSubjects.length === 0) {
     return null;
   }
 
   const hasRecommendations = recommendations.length > 0;
-  const hasAvailableSubjects = nextAvailableSubjects.length > 0;
   
-  if (!hasRecommendations && !hasAvailableSubjects) {
+  if (!hasRecommendations) {
      return (
         <Card className="mb-8 bg-secondary/50 border-primary/20">
              <CardHeader>
@@ -86,7 +70,7 @@ export default function RecommendationSection({ allSubjects, completedSubjects, 
             </CardHeader>
             <CardContent>
                  <p className="text-center text-muted-foreground text-sm py-4">
-                    Parabéns, parece que você já cursou todas as matérias da grade curricular!
+                    Parabéns, parece que você já cursou todas as matérias disponíveis ou não há professores bem avaliados nas próximas!
                 </p>
             </CardContent>
         </Card>
@@ -101,46 +85,26 @@ export default function RecommendationSection({ allSubjects, completedSubjects, 
                 Sugestões para o Próximo Período
             </CardTitle>
             <CardDescription>
-                Com base nas matérias que você cursou, aqui estão algumas sugestões.
+                Com base nas matérias que você cursou, aqui estão as sugestões de matérias com os professores mais bem avaliados.
             </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-            {hasRecommendations && (
-                <div>
-                    <h3 className="font-semibold text-foreground mb-3">Matérias com Professores Sugeridos</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                        {recommendations.map(({ subjectName, teacher, subjectId }) => (
-                            <Link href={`/subjects/${subjectId}`} key={subjectId} className="p-3 border rounded-lg bg-background text-center shadow-sm hover:border-primary transition-colors hover:-translate-y-0.5 flex flex-col justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold truncate" title={subjectName}>{subjectName}</p>
-                                    <p className="text-xs text-muted-foreground mt-1 mb-2">
-                                        Sugestão: <span className="text-primary font-medium">Prof. {teacher.name}</span>
-                                    </p>
-                                </div>
-                                <Badge variant="outline">
-                                    <Star className="h-3 w-3 mr-1 text-amber-500 fill-amber-500" />
-                                    {teacher.averageRating?.toFixed(1)} de Média
-                                </Badge>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {hasAvailableSubjects && (
-                 <div>
-                    <h3 className="font-semibold text-foreground mb-3">Outras Matérias Disponíveis</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {nextAvailableSubjects.map(subject => (
-                            <Link href={`/subjects/${subject.id}`} key={subject.id}>
-                                <Badge variant="secondary" className="text-base py-1 px-3 hover:bg-primary/20 transition-colors">
-                                    {subject.name}
-                                </Badge>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            )}
+        <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {recommendations.map(({ subjectName, teacher, subjectId }) => (
+                    <Link href={`/subjects/${subjectId}`} key={subjectId} className="p-3 border rounded-lg bg-background text-center shadow-sm hover:border-primary transition-colors hover:-translate-y-0.5 flex flex-col justify-between">
+                        <div>
+                            <p className="text-sm font-semibold truncate" title={subjectName}>{subjectName}</p>
+                            <p className="text-xs text-muted-foreground mt-1 mb-2">
+                                Sugestão: <span className="text-primary font-medium">Prof. {teacher.name}</span>
+                            </p>
+                        </div>
+                        <Badge variant="outline">
+                            <Star className="h-3 w-3 mr-1 text-amber-500 fill-amber-500" />
+                            {teacher.averageRating?.toFixed(1)} de Média
+                        </Badge>
+                    </Link>
+                ))}
+            </div>
         </CardContent>
     </Card>
   );
