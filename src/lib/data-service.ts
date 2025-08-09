@@ -1,4 +1,5 @@
 
+
 /**
  * @file data-service.ts
  * 
@@ -285,18 +286,40 @@ export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
             }
 
             if (row.review_id) {
-                teacher.reviews.push({
-                    id: row.review_id,
-                    text: row.text,
-                    rating: row.rating,
-                    upvotes: row.upvotes,
-                    downvotes: row.downvotes,
-                    createdAt: row.created_at?.toISOString() || '',
-                    report_count: row.report_count,
-                    subjectId: row.subject_id,
-                    subjectName: row.subject_name
-                });
+                // To handle grouping reviews submitted at the same time for the same teacher
+                const fiveSeconds = 5 * 1000;
+                const submissionTime = new Date(row.created_at).getTime();
+                const existingReview = teacher.reviews.find(r => 
+                    r.text === row.text && 
+                    r.rating === row.rating &&
+                    r.createdAt &&
+                    Math.abs(new Date(r.createdAt).getTime() - submissionTime) < fiveSeconds
+                );
+
+                if (existingReview) {
+                    if (row.subject_id && !existingReview.subjectIds?.includes(row.subject_id)) {
+                        existingReview.subjectIds?.push(row.subject_id);
+                        existingReview.subjectNames?.push(row.subject_name);
+                    }
+                } else {
+                    teacher.reviews.push({
+                        id: row.review_id,
+                        text: row.text,
+                        rating: row.rating,
+                        upvotes: row.upvotes,
+                        downvotes: row.downvotes,
+                        createdAt: row.created_at?.toISOString() || '',
+                        report_count: row.report_count,
+                        teacherId: row.teacher_id,
+                        teacherName: row.teacher_name,
+                        subjectId: row.subject_id,
+                        subjectName: row.subject_name,
+                        subjectIds: [row.subject_id],
+                        subjectNames: [row.subject_name],
+                    });
+                }
             }
+
              if (row.subject_name) {
                 (teacher.subjects as Set<string>).add(row.subject_name);
             }
@@ -339,30 +362,43 @@ export async function getRecentReviews(): Promise<Review[]> {
             JOIN subjects s ON r.subject_id = s.id
             WHERE r.reported = false AND r.text IS NOT NULL AND r.text <> ''
             ORDER BY r.created_at DESC
-            LIMIT 3;
+            LIMIT 15;
         `;
         const result = await client.query(query);
 
-        // Map each review to include all subjects for that review's teacher
-        const reviews: Review[] = [];
+        // Group reviews to combine ones submitted at the same time
+        const reviewGroups: Map<string, Review> = new Map();
         for (const row of result.rows) {
-            reviews.push({
-                id: row.id,
-                text: row.text,
-                rating: row.rating,
-                upvotes: row.upvotes,
-                downvotes: row.downvotes,
-                createdAt: row.created_at?.toISOString() || '',
-                report_count: row.report_count,
-                teacherId: row.teacher_id,
-                teacherName: row.teacher_name,
-                subjectId: row.subject_id,
-                subjectName: row.subject_name,
-                subjectIds: [row.subject_id],
-                subjectNames: [row.subject_name]
-            });
+             const submissionTime = new Date(row.created_at).getTime();
+             const groupKey = `${row.teacher_id}-${row.rating}-${row.text}-${Math.round(submissionTime / 5000)}`; // Group by 5-second intervals
+
+            let group = reviewGroups.get(groupKey);
+
+            if (group) {
+                if (row.subject_id && !group.subjectIds?.includes(row.subject_id)) {
+                    group.subjectIds?.push(row.subject_id);
+                    group.subjectNames?.push(row.subject_name);
+                }
+            } else {
+                 reviewGroups.set(groupKey, {
+                    id: row.id,
+                    text: row.text,
+                    rating: row.rating,
+                    upvotes: row.upvotes,
+                    downvotes: row.downvotes,
+                    createdAt: row.created_at?.toISOString() || '',
+                    report_count: row.report_count,
+                    teacherId: row.teacher_id,
+                    teacherName: row.teacher_name,
+                    subjectId: row.subject_id,
+                    subjectName: row.subject_name,
+                    subjectIds: [row.subject_id],
+                    subjectNames: [row.subject_name]
+                });
+            }
         }
-        return reviews;
+        
+        return Array.from(reviewGroups.values()).slice(0, 3);
 
     } catch (error) {
         console.error("Erro ao buscar avaliações recentes:", error);
@@ -504,7 +540,7 @@ export async function getTeacherById(teacherId: number): Promise<Teacher | null>
                 s.name as subject_name,
                 s.id as subject_id
             FROM reviews r
-            JOIN subjects s ON r.subject_id = s.id
+            LEFT JOIN subjects s ON r.subject_id = s.id
             WHERE r.teacher_id = $1 AND r.reported = false
             ORDER BY r.created_at DESC;
         `;
@@ -514,20 +550,41 @@ export async function getTeacherById(teacherId: number): Promise<Teacher | null>
         const reviews: Review[] = [];
 
         reviewsResult.rows.forEach(row => {
-            allSubjects.add(row.subject_name);
-            reviews.push({
-                id: row.id,
-                text: row.text,
-                rating: row.rating,
-                upvotes: row.upvotes,
-                downvotes: row.downvotes,
-                createdAt: row.created_at?.toISOString() || '',
-                report_count: row.report_count,
-                subjectId: row.subject_id,
-                subjectName: row.subject_name,
-                subjectIds: [row.subject_id],
-                subjectNames: [row.subject_name],
-            });
+            if (row.subject_name) {
+                allSubjects.add(row.subject_name);
+            }
+             if (row.id) {
+                // To handle grouping reviews submitted at the same time
+                const fiveSeconds = 5 * 1000;
+                const submissionTime = new Date(row.created_at).getTime();
+                const existingReview = reviews.find(r => 
+                    r.text === row.text && 
+                    r.rating === row.rating &&
+                    r.createdAt &&
+                    Math.abs(new Date(r.createdAt).getTime() - submissionTime) < fiveSeconds
+                );
+                
+                if (existingReview) {
+                     if (row.subject_id && !existingReview.subjectIds?.includes(row.subject_id)) {
+                        existingReview.subjectIds?.push(row.subject_id);
+                        existingReview.subjectNames?.push(row.subject_name);
+                    }
+                } else {
+                     reviews.push({
+                        id: row.id,
+                        text: row.text,
+                        rating: row.rating,
+                        upvotes: row.upvotes,
+                        downvotes: row.downvotes,
+                        createdAt: row.created_at?.toISOString() || '',
+                        report_count: row.report_count,
+                        subjectId: row.subject_id,
+                        subjectName: row.subject_name,
+                        subjectIds: [row.subject_id],
+                        subjectNames: [row.subject_name],
+                    });
+                }
+            }
         });
         
         const teacher: Teacher = {
