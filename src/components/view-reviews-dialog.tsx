@@ -182,9 +182,9 @@ export function ViewReviewsDialog({ teacher, children, disabled }: ViewReviewsDi
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <StarRating rating={review.rating} />
                                         <div className="flex flex-wrap gap-1">
-                                            {review.subjectNames?.map((sName, index) => (
-                                                <Badge key={`${review.id}-${review.subjectIds?.[index]}`} variant="outline">{sName}</Badge>
-                                            ))}
+                                            {review.subjectName && (
+                                                <Badge variant="outline">{review.subjectName}</Badge>
+                                            )}
                                         </div>
                                     </div>
                                      <AlertDialog>

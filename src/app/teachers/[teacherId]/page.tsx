@@ -2,7 +2,7 @@
 import { getTeacherById } from '@/lib/data-service';
 import { notFound } from 'next/navigation';
 import MainLayout from '@/components/main-layout';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, MessageSquare, BookOpen, User, ShieldAlert } from 'lucide-react';
 import StarRating from '@/components/star-rating';
@@ -129,9 +129,9 @@ export default async function TeacherProfilePage({ params }: TeacherProfilePageP
                                 <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
                                     <StarRating rating={review.rating} />
                                     <div className="flex flex-wrap gap-1">
-                                    {review.subjectNames?.map((sName, index) => (
-                                        <Badge key={`${review.id}-${review.subjectIds?.[index]}`} variant="outline">{sName}</Badge>
-                                    ))}
+                                        {review.subjectName && (
+                                            <Badge variant="outline">{review.subjectName}</Badge>
+                                        )}
                                     </div>
                                 </div>
                                 {review.text && review.text.trim() !== '' ? (

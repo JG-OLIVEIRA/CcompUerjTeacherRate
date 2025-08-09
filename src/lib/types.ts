@@ -11,9 +11,9 @@ export interface Review {
   reported?: boolean;
   teacherId?: number;
   teacherName?: string;
-  subjectId?: number; // Kept for individual review context
-  subjectName?: string; // Kept for individual review context
-  // For grouped reviews
+  subjectId?: number;
+  subjectName?: string;
+  // For potential future grouping
   subjectIds?: number[];
   subjectNames?: string[];
 }

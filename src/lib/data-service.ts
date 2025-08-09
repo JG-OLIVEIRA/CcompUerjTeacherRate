@@ -248,54 +248,57 @@ export async function getAllSubjectNames(): Promise<string[]> {
 export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
     const client = await pool.connect();
     try {
-        const allTeachersResult = await client.query("SELECT id, name FROM teachers ORDER BY name");
-        const teachersMap: Map<number, Teacher> = new Map();
-
-        allTeachersResult.rows.forEach(t => {
-            teachersMap.set(t.id, {
-                id: t.id,
-                name: t.name,
-                reviews: [],
-                averageRating: 0,
-                subjects: new Set<string>(),
-            });
-        });
-
-        const reviewsQuery = `
+        const query = `
             SELECT 
-                r.teacher_id,
-                r.id,
+                t.id as teacher_id,
+                t.name as teacher_name,
+                r.id as review_id,
                 r.text,
                 r.rating,
                 r.upvotes,
                 r.downvotes,
                 r.created_at,
                 r.report_count,
-                s.name as subject_name
-            FROM reviews r
-            JOIN subjects s ON r.subject_id = s.id
-            WHERE r.reported = false
-            ORDER BY r.teacher_id, r.created_at DESC;
+                s.name as subject_name,
+                s.id as subject_id
+            FROM teachers t
+            LEFT JOIN reviews r ON t.id = r.teacher_id AND r.reported = false
+            LEFT JOIN subjects s ON r.subject_id = s.id
+            ORDER BY t.name, r.created_at DESC;
         `;
-        const reviewsResult = await client.query(reviewsQuery);
-        
-        reviewsResult.rows.forEach(row => {
-            const teacher = teachersMap.get(row.teacher_id);
-            if (teacher) {
+        const result = await client.query(query);
+
+        const teachersMap: Map<number, Teacher> = new Map();
+
+        result.rows.forEach(row => {
+            let teacher = teachersMap.get(row.teacher_id);
+
+            if (!teacher) {
+                teacher = {
+                    id: row.teacher_id,
+                    name: row.teacher_name,
+                    reviews: [],
+                    averageRating: 0,
+                    subjects: new Set<string>(),
+                };
+                teachersMap.set(row.teacher_id, teacher);
+            }
+
+            if (row.review_id) {
                 teacher.reviews.push({
-                    id: row.id,
+                    id: row.review_id,
                     text: row.text,
                     rating: row.rating,
                     upvotes: row.upvotes,
                     downvotes: row.downvotes,
                     createdAt: row.created_at?.toISOString() || '',
                     report_count: row.report_count,
+                    subjectId: row.subject_id,
                     subjectName: row.subject_name
                 });
-
-                if (row.subject_name) {
-                    (teacher.subjects as Set<string>).add(row.subject_name);
-                }
+            }
+             if (row.subject_name) {
+                (teacher.subjects as Set<string>).add(row.subject_name);
             }
         });
 
@@ -313,6 +316,7 @@ export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
         client.release();
     }
 }
+
 
 export async function getRecentReviews(): Promise<Review[]> {
     const client = await pool.connect();
@@ -339,19 +343,26 @@ export async function getRecentReviews(): Promise<Review[]> {
         `;
         const result = await client.query(query);
 
-        return result.rows.map(row => ({
-            id: row.id,
-            text: row.text || '',
-            rating: row.rating || 0,
-            upvotes: row.upvotes || 0,
-            downvotes: row.downvotes || 0,
-            createdAt: row.created_at?.toISOString() || '',
-            report_count: row.report_count || 0,
-            teacherId: row.teacher_id,
-            teacherName: row.teacher_name,
-            subjectId: row.subject_id,
-            subjectName: row.subject_name,
-        }));
+        // Map each review to include all subjects for that review's teacher
+        const reviews: Review[] = [];
+        for (const row of result.rows) {
+            reviews.push({
+                id: row.id,
+                text: row.text,
+                rating: row.rating,
+                upvotes: row.upvotes,
+                downvotes: row.downvotes,
+                createdAt: row.created_at?.toISOString() || '',
+                report_count: row.report_count,
+                teacherId: row.teacher_id,
+                teacherName: row.teacher_name,
+                subjectId: row.subject_id,
+                subjectName: row.subject_name,
+                subjectIds: [row.subject_id],
+                subjectNames: [row.subject_name]
+            });
+        }
+        return reviews;
 
     } catch (error) {
         console.error("Erro ao buscar avaliações recentes:", error);
@@ -499,20 +510,26 @@ export async function getTeacherById(teacherId: number): Promise<Teacher | null>
         `;
         const reviewsResult = await client.query(reviewsQuery, [teacherId]);
         
-        const allSubjects = new Set<string>(reviewsResult.rows.map(r => r.subject_name));
+        const allSubjects = new Set<string>();
+        const reviews: Review[] = [];
 
-        const reviews: Review[] = reviewsResult.rows.map(row => ({
-            id: row.id,
-            text: row.text,
-            rating: row.rating,
-            upvotes: row.upvotes,
-            downvotes: row.downvotes,
-            createdAt: row.created_at?.toISOString() || '',
-            report_count: row.report_count,
-            subjectId: row.subject_id,
-            subjectName: row.subject_name
-        }));
-
+        reviewsResult.rows.forEach(row => {
+            allSubjects.add(row.subject_name);
+            reviews.push({
+                id: row.id,
+                text: row.text,
+                rating: row.rating,
+                upvotes: row.upvotes,
+                downvotes: row.downvotes,
+                createdAt: row.created_at?.toISOString() || '',
+                report_count: row.report_count,
+                subjectId: row.subject_id,
+                subjectName: row.subject_name,
+                subjectIds: [row.subject_id],
+                subjectNames: [row.subject_name],
+            });
+        });
+        
         const teacher: Teacher = {
             id: teacherData.id,
             name: teacherData.name,
