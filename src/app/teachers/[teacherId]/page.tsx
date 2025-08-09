@@ -164,3 +164,5 @@ export default async function TeacherProfilePage({ params }: TeacherProfilePageP
     </MainLayout>
   );
 }
+
+    
