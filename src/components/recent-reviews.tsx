@@ -11,7 +11,7 @@ import { upvoteReview, downvoteReview } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Badge } from './ui/badge';
-import { Carousel, CarouselContent, CarouselItem } from './ui/carousel';
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from './ui/carousel';
 import Autoplay from "embla-carousel-autoplay"
 
 
@@ -27,9 +27,28 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
   const [votedReviewIds, setVotedReviewIds] = useState<number[]>([]);
   const { toast } = useToast();
 
-  const plugin = useRef(
-    Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true })
-  )
+  const [api, setApi] = useState<CarouselApi>()
+ 
+  useEffect(() => {
+    if (!api) {
+      return
+    }
+ 
+    const autoplay = Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true });
+    autoplay.init(api);
+
+    return () => {
+        // It's good practice to cleanup, though not strictly necessary if the component unmounts.
+        try {
+            if (api && (api as any).plugins && (api as any).plugins().autoplay) {
+                 (api as any).plugins().autoplay.destroy();
+            }
+        } catch (e) {
+            // Suppress errors on cleanup
+        }
+    }
+  }, [api])
+
 
   useEffect(() => {
     try {
@@ -116,7 +135,7 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
             align: "start",
             loop: true,
         }}
-        plugins={[plugin.current]}
+        setApi={setApi}
         className="w-full"
     >
         <CarouselContent>
