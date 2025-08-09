@@ -1,27 +1,18 @@
 
-
 import MainLayout from "@/components/main-layout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ShieldAlert } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import RequestForm from "@/components/request-form";
 import { Suspense } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function RequestPage() {
 
     const headerContent = (
         <div className="flex flex-col items-center justify-center text-center">
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
-                Este é um canal de comunicação direto para professores.
+                Este é um canal de comunicação direto para professores que desejam solicitar a remoção ou correção de seus dados, ou a exclusão de avaliações específicas. Solicitações de outros tipos não serão processadas por este canal.
             </p>
-            <Alert variant="destructive" className="w-full sm:max-w-2xl text-left mb-6">
-                <ShieldAlert className="h-4 w-4" />
-                <AlertTitle>Atenção!</AlertTitle>
-                <AlertDescription>
-                    Este formulário é de uso exclusivo para professores que desejam solicitar a remoção ou correção de seus dados, ou a exclusão de avaliações específicas. Solicitações de outros tipos não serão processadas por este canal.
-                </AlertDescription>
-            </Alert>
             <Button asChild variant="outline">
                 <Link href="/">
                     <ArrowLeft className="mr-2 h-4 w-4" />
