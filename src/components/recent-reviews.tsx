@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition, useEffect, useRef } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import type { Review } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from './ui/card';
 import { Button } from './ui/button';
@@ -22,7 +22,6 @@ interface RecentReviewsProps {
 const VOTED_REVIEWS_KEY_RECENT = 'votedReviewsRecent';
 
 export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
-  const [reviews, setReviews] = useState(initialReviews);
   const [isPending, startTransition] = useTransition();
   const [votedReviewIds, setVotedReviewIds] = useState<number[]>([]);
   const { toast } = useToast();
@@ -38,7 +37,6 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
     autoplay.init(api);
 
     return () => {
-        // It's good practice to cleanup, though not strictly necessary if the component unmounts.
         try {
             if (api && (api as any).plugins && (api as any).plugins().autoplay) {
                  (api as any).plugins().autoplay.destroy();
@@ -87,19 +85,9 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
         await action(reviewId);
         addVotedReviewId(reviewId);
 
-        setReviews(prevReviews => 
-          prevReviews.map(review => {
-            if (review.id === reviewId) {
-              return {
-                ...review,
-                upvotes: voteType === 'up' ? review.upvotes + 1 : review.upvotes,
-                downvotes: voteType === 'down' ? review.downvotes + 1 : review.downvotes,
-              };
-            }
-            return review;
-          })
-        );
-
+        // NOTE: We no longer update state optimistically as the reviews are passed via props.
+        // The carousel will continue to show the old data until the next page refresh, which is acceptable.
+        
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Ocorreu um erro desconhecido.";
         toast({
@@ -127,7 +115,7 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
     return `há ${diffInDays} dias`;
   };
 
-  if (reviews.length === 0) return null;
+  if (initialReviews.length === 0) return null;
 
   return (
     <Carousel 
@@ -139,7 +127,7 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
         className="w-full"
     >
         <CarouselContent>
-            {reviews.map(review => {
+            {initialReviews.map(review => {
                 const hasVoted = votedReviewIds.includes(review.id);
                 return (
                     <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3">
