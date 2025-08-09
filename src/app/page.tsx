@@ -47,7 +47,7 @@ export default async function TeachersPage() {
             </Button>
         </div>
 
-        <Alert className="w-full sm:max-w-2xl text-left mb-6 border-primary/50 bg-primary/10">
+        <Alert className="w-full max-w-2xl text-left mb-6 border-primary/50 bg-primary/10">
           <Info className="h-4 w-4 text-primary" />
           <AlertTitle className="text-primary/90">Aviso Importante</AlertTitle>
           <AlertDescription className="text-primary/80">
@@ -55,7 +55,7 @@ export default async function TeachersPage() {
           </AlertDescription>
         </Alert>
 
-        <div className="mt-8 w-full sm:max-w-3xl p-4 bg-secondary/50 border border-primary/20 rounded-lg text-center space-y-2">
+        <div className="mt-8 w-full max-w-3xl p-4 bg-secondary/50 border border-primary/20 rounded-lg text-center space-y-2">
             <div className="flex items-center justify-center gap-2">
                 <Megaphone className="h-5 w-5 text-primary"/>
                 <h3 className="text-md font-semibold text-foreground">Nosso Compromisso</h3>
