@@ -249,7 +249,6 @@ export async function getAllSubjectNames(): Promise<string[]> {
 export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
     const client = await pool.connect();
     try {
-        // 1. Get all teachers and initialize them in a map
         const allTeachersResult = await client.query("SELECT id, name FROM teachers ORDER BY name");
         const teachersMap: Map<number, Teacher> = new Map();
 
@@ -263,51 +262,89 @@ export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
             });
         });
 
-        // 2. Get all non-reported reviews with their subject names
         const reviewsQuery = `
             SELECT 
                 r.teacher_id,
                 r.id as review_id,
                 r.text as review_text,
                 r.rating as review_rating,
-                r.upvotes as review_upvotes,
-                r.downvotes as review_downvotes,
-                r.created_at as review_created_at,
-                r.report_count as review_report_count,
+                r.upvotes,
+                r.downvotes,
+                r.created_at,
+                r.report_count,
+                s.id as subject_id,
                 s.name as subject_name
             FROM reviews r
             JOIN subjects s ON r.subject_id = s.id
             WHERE r.reported = false
-            ORDER BY r.teacher_id;
+            ORDER BY r.teacher_id, r.created_at DESC;
         `;
         const reviewsResult = await client.query(reviewsQuery);
-
-        // 3. Associate reviews and subjects with teachers
+        
+        const allRawReviews: Review[] = [];
+        
+        // First pass: collect all raw reviews and subjects for each teacher
         for (const row of reviewsResult.rows) {
             let teacher = teachersMap.get(row.teacher_id);
-            // Only process reviews for teachers that exist in our map
             if (teacher) {
-                if (row.review_id && !teacher.reviews.some(r => r.id === row.review_id)) {
-                    teacher.reviews.push({
-                        id: row.review_id,
-                        text: row.review_text || '',
-                        rating: row.review_rating || 0,
-                        upvotes: row.upvotes || 0,
-                        downvotes: row.downvotes || 0,
-                        createdAt: row.review_created_at?.toISOString() || '',
-                        report_count: row.review_report_count || 0,
-                    });
-                }
                 if (row.subject_name) {
                     (teacher.subjects as Set<string>).add(row.subject_name);
                 }
+                allRawReviews.push({
+                    id: row.review_id,
+                    text: row.review_text,
+                    rating: row.review_rating,
+                    upvotes: row.upvotes,
+                    downvotes: row.downvotes,
+                    createdAt: row.created_at.toISOString(),
+                    report_count: row.report_count,
+                    teacherId: row.teacher_id,
+                    subjectId: row.subject_id,
+                    subjectName: row.subject_name,
+                });
             }
         }
+        
+        // Second pass: group reviews and assign to teachers
+        const groupedReviewsMap = new Map<number, Map<string, Review>>();
 
-        // 4. Calculate average rating for each teacher
+        for (const review of allRawReviews) {
+            if (!groupedReviewsMap.has(review.teacherId!)) {
+                groupedReviewsMap.set(review.teacherId!, new Map<string, Review>());
+            }
+            const teacherReviewMap = groupedReviewsMap.get(review.teacherId!)!;
+            
+            const createdAt = new Date(review.createdAt!);
+            const groupKey = `${review.text}:${review.rating}:${createdAt.toISOString()}`;
+
+            let entry = teacherReviewMap.get(groupKey);
+            if (!entry) {
+                 entry = {
+                    ...review,
+                    subjectIds: [review.subjectId!],
+                    subjectNames: [review.subjectName!],
+                };
+            } else {
+                 if (!entry.subjectIds?.includes(review.subjectId!)) {
+                    entry.subjectIds?.push(review.subjectId!);
+                    entry.subjectNames?.push(review.subjectName!);
+                }
+                 if (review.id > entry.id) {
+                    entry.id = review.id;
+                }
+            }
+            teacherReviewMap.set(groupKey, entry);
+        }
+
+        // Final pass: calculate averages and assign grouped reviews
         const teacherList = Array.from(teachersMap.values());
         for (const teacher of teacherList) {
-            teacher.averageRating = calculateAverageRating(teacher.reviews);
+            teacher.averageRating = calculateAverageRating(allRawReviews.filter(r => r.teacherId === teacher.id));
+            
+            const groupedForTeacher = groupedReviewsMap.get(teacher.id);
+            if(groupedForTeacher) {
+                teacher.reviews = Array.from(groupedForTeacher.values());
+            }
         }
 
         return teacherList.sort((a,b) => a.name.localeCompare(b.name));

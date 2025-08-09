@@ -16,6 +16,11 @@ interface TeacherListItemProps {
 export default function TeacherListItem({ teacher }: TeacherListItemProps) {
   const { id, name, averageRating = 0, reviews, subjects } = teacher;
 
+  const totalReviewCount = reviews.reduce((acc, review) => {
+    return acc + (review.subjectNames?.length || 1);
+  }, 0);
+
+
   return (
     <Link href={`/teachers/${id}`} className="flex h-full">
       <Card 
@@ -34,7 +39,7 @@ export default function TeacherListItem({ teacher }: TeacherListItemProps) {
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
               <MessageSquare className="h-4 w-4" />
-              <span className="text-sm">{reviews.length} {reviews.length === 1 ? 'avaliação' : 'avaliações'}</span>
+              <span className="text-sm">{totalReviewCount} {totalReviewCount === 1 ? 'avaliação' : 'avaliações'}</span>
           </div>
         </CardContent>
          <CardFooter className="flex-col items-start gap-4 pt-4">
