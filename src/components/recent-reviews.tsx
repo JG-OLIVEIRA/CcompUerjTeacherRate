@@ -33,16 +33,12 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
       return
     }
  
-    const autoplay = Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true });
-    autoplay.init(api);
+    const plugin = Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true });
+    plugin.init(api);
 
     return () => {
-        try {
-            if (api && (api as any).plugins && (api as any).plugins().autoplay) {
-                 (api as any).plugins().autoplay.destroy();
-            }
-        } catch (e) {
-            // Suppress errors on cleanup
+        if (plugin && typeof plugin.destroy === 'function') {
+            plugin.destroy();
         }
     }
   }, [api])
@@ -84,9 +80,6 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
         const action = voteType === 'up' ? upvoteReview : downvoteReview;
         await action(reviewId);
         addVotedReviewId(reviewId);
-
-        // NOTE: We no longer update state optimistically as the reviews are passed via props.
-        // The carousel will continue to show the old data until the next page refresh, which is acceptable.
         
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Ocorreu um erro desconhecido.";
