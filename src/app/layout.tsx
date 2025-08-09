@@ -3,8 +3,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import { validateRequest } from '@/lib/auth-actions';
-import AuthProvider from '@/components/auth-provider';
 
 
 export const metadata: Metadata = {
@@ -18,7 +16,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { user } = await validateRequest();
 
   return (
     <html lang="pt-BR" className="dark">
@@ -31,9 +28,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <AuthProvider user={user}>
           {children}
-        </AuthProvider>
         <Toaster />
         <SpeedInsights />
       </body>
