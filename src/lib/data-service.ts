@@ -245,46 +245,6 @@ export async function getAllSubjectNames(): Promise<string[]> {
     }
 }
 
-// Helper function to group reviews
-const groupReviews = (reviews: any[]): Review[] => {
-    const reviewMap = new Map<string, Review>();
-
-    reviews.forEach(row => {
-        // A unique key for a conceptual review (same teacher, text, rating, and timestamp)
-        const createdAt = new Date(row.created_at);
-        const groupKey = `${row.teacher_id}:${row.text}:${row.rating}:${createdAt.toISOString()}`;
-
-        if (!reviewMap.has(groupKey)) {
-            reviewMap.set(groupKey, {
-                id: row.id,
-                text: row.text,
-                rating: row.rating,
-                upvotes: row.upvotes,
-                downvotes: row.downvotes,
-                report_count: row.report_count,
-                createdAt: createdAt.toISOString(),
-                teacherId: row.teacher_id,
-                teacherName: row.teacher_name,
-                subjectIds: [],
-                subjectNames: [],
-            });
-        }
-
-        const review = reviewMap.get(groupKey)!;
-        if (!review.subjectIds?.includes(row.subject_id)) {
-            review.subjectIds?.push(row.subject_id);
-            review.subjectNames?.push(row.subject_name);
-        }
-        // Use the highest review ID for the group to ensure the link is valid
-        if (row.id > review.id) {
-            review.id = row.id;
-        }
-    });
-
-    return Array.from(reviewMap.values());
-};
-
-
 export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
     const client = await pool.connect();
     try {
@@ -311,7 +271,6 @@ export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
                 r.downvotes,
                 r.created_at,
                 r.report_count,
-                s.id as subject_id,
                 s.name as subject_name
             FROM reviews r
             JOIN subjects s ON r.subject_id = s.id
@@ -320,37 +279,29 @@ export async function getTeachersWithGlobalStats(): Promise<Teacher[]> {
         `;
         const reviewsResult = await client.query(reviewsQuery);
         
-        // This map will store all reviews for a teacher to calculate the overall average rating.
-        const allReviewsByTeacher = new Map<number, Review[]>();
-
         reviewsResult.rows.forEach(row => {
-            if (!allReviewsByTeacher.has(row.teacher_id)) {
-                allReviewsByTeacher.set(row.teacher_id, []);
-            }
-            allReviewsByTeacher.get(row.teacher_id)!.push({
-                id: row.id,
-                rating: row.rating
-            } as Review);
-
             const teacher = teachersMap.get(row.teacher_id);
-            if (teacher && row.subject_name) {
-                (teacher.subjects as Set<string>).add(row.subject_name);
-            }
-        });
+            if (teacher) {
+                teacher.reviews.push({
+                    id: row.id,
+                    text: row.text,
+                    rating: row.rating,
+                    upvotes: row.upvotes,
+                    downvotes: row.downvotes,
+                    createdAt: row.created_at?.toISOString() || '',
+                    report_count: row.report_count,
+                    subjectName: row.subject_name
+                });
 
-        // Group reviews to handle multi-subject entries
-        const groupedReviews = groupReviews(reviewsResult.rows);
-        
-        groupedReviews.forEach(review => {
-            if (review.teacherId && teachersMap.has(review.teacherId)) {
-                teachersMap.get(review.teacherId)!.reviews.push(review);
+                if (row.subject_name) {
+                    (teacher.subjects as Set<string>).add(row.subject_name);
+                }
             }
         });
 
         const teacherList = Array.from(teachersMap.values());
         for (const teacher of teacherList) {
-            const allReviewsForTeacher = allReviewsByTeacher.get(teacher.id) || [];
-            teacher.averageRating = calculateAverageRating(allReviewsForTeacher);
+            teacher.averageRating = calculateAverageRating(teacher.reviews);
         }
 
         return teacherList.sort((a,b) => a.name.localeCompare(b.name));
@@ -398,8 +349,8 @@ export async function getRecentReviews(): Promise<Review[]> {
             report_count: row.report_count || 0,
             teacherId: row.teacher_id,
             teacherName: row.teacher_name,
-            subjectIds: [row.subject_id],
-            subjectNames: [row.subject_name],
+            subjectId: row.subject_id,
+            subjectName: row.subject_name,
         }));
 
     } catch (error) {
@@ -540,30 +491,34 @@ export async function getTeacherById(teacherId: number): Promise<Teacher | null>
                 r.created_at,
                 r.report_count,
                 s.name as subject_name,
-                s.id as subject_id,
-                r.teacher_id,
-                t.name as teacher_name
+                s.id as subject_id
             FROM reviews r
             JOIN subjects s ON r.subject_id = s.id
-            JOIN teachers t on r.teacher_id = t.id
             WHERE r.teacher_id = $1 AND r.reported = false
             ORDER BY r.created_at DESC;
         `;
         const reviewsResult = await client.query(reviewsQuery, [teacherId]);
         
-        const allReviewsForAverage: Review[] = reviewsResult.rows.map(row => ({
-            id: row.id,
-            rating: row.rating
-        } as Review));
-        
         const allSubjects = new Set<string>(reviewsResult.rows.map(r => r.subject_name));
+
+        const reviews: Review[] = reviewsResult.rows.map(row => ({
+            id: row.id,
+            text: row.text,
+            rating: row.rating,
+            upvotes: row.upvotes,
+            downvotes: row.downvotes,
+            createdAt: row.created_at?.toISOString() || '',
+            report_count: row.report_count,
+            subjectId: row.subject_id,
+            subjectName: row.subject_name
+        }));
 
         const teacher: Teacher = {
             id: teacherData.id,
             name: teacherData.name,
-            reviews: groupReviews(reviewsResult.rows),
+            reviews: reviews,
             subjects: allSubjects,
-            averageRating: calculateAverageRating(allReviewsForAverage),
+            averageRating: calculateAverageRating(reviews),
         };
         
         return teacher;
