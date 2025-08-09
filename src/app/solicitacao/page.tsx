@@ -1,4 +1,5 @@
 
+
 import MainLayout from "@/components/main-layout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ShieldAlert } from "lucide-react";
@@ -14,7 +15,7 @@ export default function RequestPage() {
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
                 Este é um canal de comunicação direto para professores.
             </p>
-            <Alert variant="destructive" className="max-w-2xl text-left mb-6">
+            <Alert variant="destructive" className="w-full sm:max-w-2xl text-left mb-6">
                 <ShieldAlert className="h-4 w-4" />
                 <AlertTitle>Atenção!</AlertTitle>
                 <AlertDescription>
