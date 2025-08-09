@@ -29,11 +29,11 @@ export default async function TeachersPage() {
   const sortedTeachers = [...teachers].sort((a, b) => a.name.localeCompare(b.name));
 
   const headerContent = (
-      <div className="flex flex-col items-center justify-center text-center w-full px-4">
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
+      <div className="flex flex-col items-center justify-center text-center w-full px-4 space-y-6">
+        <p className="text-lg text-muted-foreground max-w-3xl">
           O lugar central para encontrar e avaliar os professores de Ciência da Computação da UERJ.
         </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <AddTeacherOrReviewDialog
                 allSubjectNames={allSubjectNames}
                 allTeachers={teachers} // Pass the full teacher objects
@@ -47,7 +47,7 @@ export default async function TeachersPage() {
             </Button>
         </div>
 
-        <Alert className="w-full max-w-2xl text-left mb-6 border-primary/50 bg-primary/10">
+        <Alert className="w-full max-w-3xl text-left border-primary/50 bg-primary/10">
           <Info className="h-4 w-4 text-primary" />
           <AlertTitle className="text-primary/90">Aviso Importante</AlertTitle>
           <AlertDescription className="text-primary/80">
@@ -55,15 +55,15 @@ export default async function TeachersPage() {
           </AlertDescription>
         </Alert>
 
-        <div className="mt-8 w-full max-w-3xl p-4 bg-secondary/50 border border-primary/20 rounded-lg text-center space-y-2">
+        <div className="w-full max-w-3xl p-4 bg-secondary/50 border border-primary/20 rounded-lg text-center space-y-3">
             <div className="flex items-center justify-center gap-2">
                 <Megaphone className="h-5 w-5 text-primary"/>
                 <h3 className="text-md font-semibold text-foreground">Nosso Compromisso</h3>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground px-2">
                 Este espaço foi criado para feedback construtivo. Lembre-se de ser respeitoso em suas avaliações, focando na didática e na sua experiência de aprendizado. O objetivo é ajudar alunos e professores a crescerem juntos.
             </p>
-             <Button asChild variant="link" size="sm" className="text-primary">
+             <Button asChild variant="link" size="sm" className="text-primary text-center">
               <Link href="/moderation">
                 <ShieldCheck className="mr-2 h-4 w-4" />
                 Acessar o Painel de Moderação Comunitária
