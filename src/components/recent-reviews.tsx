@@ -20,12 +20,13 @@ interface RecentReviewsProps {
 const VOTED_REVIEWS_KEY_RECENT = 'votedReviewsRecent';
 
 export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
+  const [isClient, setIsClient] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [votedReviewIds, setVotedReviewIds] = useState<Set<number>>(new Set());
   const { toast } = useToast();
  
   useEffect(() => {
-    // This code now safely runs only on the client
+    setIsClient(true);
     try {
       const voted = localStorage.getItem(VOTED_REVIEWS_KEY_RECENT);
       if (voted) {
@@ -41,7 +42,6 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
     newVotedIds.add(reviewId);
     setVotedReviewIds(newVotedIds);
     try {
-      // localStorage only stores strings
       localStorage.setItem(VOTED_REVIEWS_KEY_RECENT, JSON.stringify(Array.from(newVotedIds)));
     } catch (error) {
       console.error("Failed to save voted review to localStorage", error);
@@ -101,7 +101,9 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
                         <CardHeader className="pb-3">
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <StarRating rating={review.rating} />
-                                <span className="text-xs text-muted-foreground">{formatDate(review.createdAt)}</span>
+                                <span className="text-xs text-muted-foreground">
+                                    {isClient ? formatDate(review.createdAt) : ''}
+                                </span>
                             </div>
                         </CardHeader>
                         <CardContent className="flex-grow">
