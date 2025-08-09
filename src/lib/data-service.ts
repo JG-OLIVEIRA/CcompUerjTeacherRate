@@ -354,8 +354,8 @@ export async function getRecentReviews(): Promise<Review[]> {
 
         result.rows.forEach(row => {
             const createdAt = new Date(row.created_at);
-            // Group by day, teacher, and text content
-            const groupKey = `${createdAt.toISOString().slice(0, 10)}:${row.teacher_id}:${row.text}`;
+            // Group by teacher, text, rating and the exact timestamp to catch submissions made at the same time.
+            const groupKey = `${row.teacher_id}:${row.text}:${row.rating}:${createdAt.toISOString()}`;
 
             let entry = groupedReviewsMap.get(groupKey);
 
@@ -380,9 +380,8 @@ export async function getRecentReviews(): Promise<Review[]> {
                     entry.subjectIds?.push(row.subject_id);
                     entry.subjectNames?.push(row.subject_name);
                 }
-                // Use the latest created_at and the highest ID for consistency
-                if (createdAt > new Date(entry.createdAt!)) {
-                    entry.createdAt = createdAt.toISOString();
+                // Use the highest ID for consistency, assuming higher ID is later.
+                 if (row.id > entry.id) {
                     entry.id = row.id;
                 }
             }
@@ -670,64 +669,6 @@ export async function getPlatformStats(): Promise<{ totalTeachers: number; total
     } catch (error) {
         console.error("Erro ao buscar estatísticas da plataforma:", error);
         return { totalTeachers: 0, totalReviews: 0, newReviewsThisWeek: 0 };
-    } finally {
-        client.release();
-    }
-}
-
-export async function getSubjectLinks(): Promise<SubjectLink[]> {
-    const client = await pool.connect();
-    try {
-        const query = `
-            SELECT 
-                s.id as subject_id,
-                s.name as subject_name,
-                sl.link_url
-            FROM subjects s
-            LEFT JOIN subject_links sl ON s.id = sl.subject_id
-            ORDER BY s.name;
-        `;
-        const result = await client.query(query);
-
-        return result.rows.map(row => ({
-            subjectId: row.subject_id,
-            subjectName: row.subject_name,
-            linkUrl: row.link_url,
-            iconName: assignIconName(row.subject_name),
-        }));
-    } catch (error) {
-        console.error("Error fetching subject links:", error);
-        throw new Error("Failed to fetch subject links.");
-    } finally {
-        client.release();
-    }
-}
-
-export async function upsertSubjectLink(subjectId: number, linkUrl: string): Promise<void> {
-    const client = await pool.connect();
-    try {
-        const query = `
-            INSERT INTO subject_links (subject_id, link_url)
-            VALUES ($1, $2)
-            ON CONFLICT (subject_id) DO UPDATE
-            SET link_url = EXCLUDED.link_url;
-        `;
-        await client.query(query, [subjectId, linkUrl]);
-    } catch (error) {
-        console.error("Error upserting subject link:", error);
-        throw new Error("Failed to save subject link.");
-    } finally {
-        client.release();
-    }
-}
-
-export async function deleteSubjectLink(subjectId: number): Promise<void> {
-    const client = await pool.connect();
-    try {
-        await client.query('DELETE FROM subject_links WHERE subject_id = $1', [subjectId]);
-    } catch (error) {
-        console.error("Error deleting subject link:", error);
-        throw new Error("Failed to delete subject link.");
     } finally {
         client.release();
     }
