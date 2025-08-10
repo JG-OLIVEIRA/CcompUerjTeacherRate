@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
 import FlowchartSubjectCard from "./flowchart-subject-card";
-import { Lightbulb, MousePointerClick } from 'lucide-react';
+import { Lightbulb, MousePointerClick, CheckSquare, CalendarClock } from 'lucide-react';
+import { Separator } from './ui/separator';
 
 const flowchartData = [
     { semester: 1, subjects: ["Geometria Analítica", "Cálculo I", "Álgebra", "Matemática Discreta", "Fundamentos da Computação"] },
@@ -15,6 +16,10 @@ const flowchartData = [
     { semester: 7, subjects: ["Computação Gráfica", "Inteligência Artificial", "Ética Comp. e Sociedade", "Metod. Cient. no Projeto Final", "Redes de Computadores I", "Arq. Avançadas de Computadores"] },
     { semester: 8, subjects: ["Eletiva II", "Eletiva III", "Projeto Final", "Sistemas Distribuídos", "Eletiva IV"] },
 ];
+
+const totalSubjects = flowchartData.reduce((sum, semester) => sum + semester.subjects.length, 0);
+const AVG_SUBJECTS_PER_SEMESTER = 6;
+
 
 export const prerequisites: { [subject: string]: string[] } = {};
 
@@ -66,18 +71,42 @@ export default function CourseFlowchart({ onCompletedChange }: CourseFlowchartPr
     // Render a placeholder or null on the server to avoid hydration mismatch
     return null;
   }
+  
+  const remainingSubjects = totalSubjects - completedSubjects.size;
+  const remainingSemesters = Math.ceil(remainingSubjects / AVG_SUBJECTS_PER_SEMESTER);
 
   return (
     <Card className="w-full mb-6 bg-secondary/50 border-primary/20">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-xl">
-            <Lightbulb className="h-6 w-6 text-primary" />
-            Fluxograma Interativo
-        </CardTitle>
-        <CardDescription className="flex items-start gap-2">
-            <MousePointerClick className='h-4 w-4 mt-0.5 flex-shrink-0'/>
-            <span>Clique nas matérias que você já cursou para ver recomendações para as próximas.</span>
-        </CardDescription>
+        <div className='grid gap-4 sm:grid-cols-2'>
+            <div>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                    <Lightbulb className="h-6 w-6 text-primary" />
+                    Fluxograma Interativo
+                </CardTitle>
+                <CardDescription className="flex items-start gap-2 mt-2">
+                    <MousePointerClick className='h-4 w-4 mt-0.5 flex-shrink-0'/>
+                    <span>Clique nas matérias que você já cursou para ver recomendações.</span>
+                </CardDescription>
+            </div>
+            <div className='bg-background/70 border rounded-lg p-3 text-sm space-y-2'>
+                <div className='flex items-center gap-3'>
+                    <div className='flex items-center gap-2'>
+                         <CheckSquare className='h-4 w-4 text-primary' />
+                        <span className='font-medium'>Matérias Restantes:</span>
+                    </div>
+                    <span className='font-bold text-base'>{remainingSubjects}</span>
+                </div>
+                 <Separator/>
+                <div className='flex items-center gap-3'>
+                    <div className='flex items-center gap-2'>
+                        <CalendarClock className='h-4 w-4 text-primary' />
+                        <span className='font-medium'>Previsão de Formatura:</span>
+                    </div>
+                     <span className='font-bold text-base'>{remainingSemesters} {remainingSemesters === 1 ? 'período' : 'períodos'}</span>
+                </div>
+            </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
