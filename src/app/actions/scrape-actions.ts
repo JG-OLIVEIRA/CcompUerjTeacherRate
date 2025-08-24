@@ -38,7 +38,7 @@ export async function getUerjSubjects(input: UerjSubjectInput): Promise<UerjSubj
   const { matricula, senha } = validation.data;
   
   const options = new chrome.Options()
-    .headless()
+    .addArguments("--headless=new") // Correct way to set headless mode
     .windowSize({ width: 1920, height: 1080 })
     .addArguments("--no-sandbox", "--disable-dev-shm-usage");
 
