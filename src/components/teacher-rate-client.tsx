@@ -8,6 +8,7 @@ import RecommendationSection from './recommendation-section';
 import { Input } from './ui/input';
 import { Search, BookOpen } from 'lucide-react';
 import SubjectSection from './subject-section';
+import { subjectToSemesterMap } from '@/lib/utils';
 
 
 interface TeacherRateClientProps {
@@ -32,7 +33,7 @@ export default function TeacherRateClient({ initialSubjectsData, allTeachers }: 
   const groupedSubjects = useMemo(() => {
     const groups: { [key: string]: Subject[] } = {};
     filteredSubjects.forEach(subject => {
-        const semester = subject.period || 'Outras';
+        const semester = subjectToSemesterMap[subject.name] || 'Outras';
         if (!groups[semester]) {
             groups[semester] = [];
         }
