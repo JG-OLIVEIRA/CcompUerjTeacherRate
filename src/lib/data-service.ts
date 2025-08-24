@@ -657,7 +657,7 @@ export async function getSubjectById(subjectId: number): Promise<{
         `;
         
         const classesQuery = `
-            SELECT * FROM classes WHERE discipline_name = $1 ORDER BY number;
+            SELECT * FROM classes WHERE discipline_name LIKE '%' || $1 || '%' ORDER BY number;
         `;
         
         const [reviewsResult, classesResult] = await Promise.all([
