@@ -33,18 +33,31 @@ const calculateAverageRating = (reviews: Review[]): number => {
 export async function getSubjects(): Promise<Subject[]> {
     const client = await pool.connect();
     try {
-        const subjectsResult = await client.query('SELECT id, name FROM subjects ORDER BY name;');
-        const subjectsMap: Map<number, Subject> = new Map(
-            subjectsResult.rows.map(row => [
-                row.id,
-                {
-                    id: row.id,
-                    name: row.name,
-                    iconName: assignIconName(row.name),
+        // Step 1: Get distinct discipline names from the classes table as the source of truth
+        const availableSubjectsResult = await client.query('SELECT DISTINCT discipline_name FROM classes ORDER BY discipline_name;');
+        const availableSubjectNames = new Set(availableSubjectsResult.rows.map(row => row.discipline_name));
+
+        // Step 2: Get all subjects from the subjects table to have their IDs
+        const allSubjectsResult = await client.query('SELECT id, name FROM subjects;');
+        const subjectNameToIdMap = new Map<string, number>();
+        allSubjectsResult.rows.forEach(row => {
+            subjectNameToIdMap.set(row.name, row.id);
+        });
+
+        // Step 3: Create the initial map of subjects that are actually available
+        const subjectsMap: Map<number, Subject> = new Map();
+        availableSubjectNames.forEach(name => {
+            const id = subjectNameToIdMap.get(name);
+            // Only add subjects that exist in both tables to avoid inconsistencies
+            if (id) {
+                subjectsMap.set(id, {
+                    id: id,
+                    name: name,
+                    iconName: assignIconName(name),
                     teachers: [],
-                },
-            ])
-        );
+                });
+            }
+        });
 
         const dataQuery = `
             SELECT 
@@ -70,6 +83,7 @@ export async function getSubjects(): Promise<Subject[]> {
         const teachersMap: Map<string, Teacher> = new Map(); // Key: "teacherId-subjectId"
 
         for (const row of dataResult.rows) {
+            // Only process data for subjects that are available
             const subject = subjectsMap.get(row.subject_id);
             if (!subject) continue;
 
