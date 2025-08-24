@@ -27,11 +27,32 @@ export interface Teacher {
   averageRating?: number;
 }
 
+export interface ClassInfo {
+  id: number;
+  discipline_name: string;
+  number: string;
+  preferential: boolean;
+  times: string;
+  teacher: string;
+  offered_uerj: number;
+  occupied_uerj: number;
+  offered_vestibular: number;
+  occupied_vestibular: number;
+  request_uerj_offered: number;
+  request_uerj_total: number;
+  request_uerj_preferential: number;
+  request_vestibular_offered: number;
+  request_vestibular_total: number;
+  request_vestibular_preferential: number;
+}
+
+
 export interface Subject {
   id: number;
   name: string;
   iconName: string;
   teachers: Teacher[];
+  classes?: ClassInfo[];
 }
 
 export interface SubjectLink {

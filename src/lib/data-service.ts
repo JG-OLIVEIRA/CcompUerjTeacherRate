@@ -7,7 +7,7 @@
  * a um banco de dados PostgreSQL para persistir os dados da aplicação.
  */
 import 'server-only';
-import type { Subject, Teacher, Review, SubjectLink } from './types';
+import type { Subject, Teacher, Review, SubjectLink, ClassInfo } from './types';
 import { pool } from './db';
 
 
@@ -630,6 +630,7 @@ export async function getSubjectById(subjectId: number): Promise<{
     name: string;
     iconName: string;
     reviews: any[];
+    classes: ClassInfo[];
 } | null> {
     const client = await pool.connect();
     try {
@@ -654,13 +655,22 @@ export async function getSubjectById(subjectId: number): Promise<{
             JOIN teachers t ON r.teacher_id = t.id
             WHERE r.subject_id = $1 AND r.reported = false;
         `;
-        const reviewsResult = await client.query(reviewsQuery, [subjectId]);
+        
+        const classesQuery = `
+            SELECT * FROM classes WHERE discipline_name = $1 ORDER BY number;
+        `;
+        
+        const [reviewsResult, classesResult] = await Promise.all([
+            client.query(reviewsQuery, [subjectId]),
+            client.query(classesQuery, [subjectData.name])
+        ]);
 
         return {
             id: subjectData.id,
             name: subjectData.name,
             iconName: assignIconName(subjectData.name),
             reviews: reviewsResult.rows,
+            classes: classesResult.rows,
         };
 
     } catch (error) {

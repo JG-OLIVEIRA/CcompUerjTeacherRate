@@ -1,10 +1,11 @@
 
+
 import { getSubjectById } from '@/lib/data-service';
 import { notFound } from 'next/navigation';
 import MainLayout from '@/components/main-layout';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Users, GraduationCap } from 'lucide-react';
 import TeacherCard from '@/components/teacher-card';
 import {
   Breadcrumb,
@@ -15,6 +16,9 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import type { Teacher, Review } from '@/lib/types';
+import { Separator } from '@/components/ui/separator';
+import ClassInfoCard from '@/components/class-info-card';
+
 
 interface SubjectProfilePageProps {
   params: {
@@ -113,7 +117,11 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
       children: headerContent
     }}>
         <div className="container mx-auto px-4 py-8">
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-7xl mx-auto">
+                 <h2 className="text-2xl font-bold tracking-tight text-foreground mb-6 flex items-center gap-3">
+                    <Users className="h-7 w-7 text-primary" />
+                    Professores Avaliados
+                </h2>
                  {teachers.length > 0 ? (
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {teachers.map((teacher) => (
@@ -130,6 +138,22 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
                         <p className="text-sm mt-2">Ainda não há professores avaliados para esta matéria.</p>
                     </div>
                 )}
+
+                {subjectData.classes && subjectData.classes.length > 0 && (
+                    <>
+                        <Separator className="my-12" />
+                        <h2 className="text-2xl font-bold tracking-tight text-foreground mb-6 flex items-center gap-3">
+                            <GraduationCap className="h-7 w-7 text-primary" />
+                            Turmas Disponíveis
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {subjectData.classes.map(classInfo => (
+                                <ClassInfoCard key={classInfo.id} classInfo={classInfo} />
+                            ))}
+                        </div>
+                    </>
+                )}
+
             </div>
         </div>
     </MainLayout>
