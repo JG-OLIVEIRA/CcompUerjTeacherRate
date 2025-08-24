@@ -39,20 +39,14 @@ const calculateAverageRating = (reviews: Review[]): number => {
 
 
 // Helper function to find matching teachers for a class.
-// It can now return an array of teachers if multiple are found.
+// It prioritizes the class teacher name as the source of truth.
 const findMatchingTeachers = (className: string, allTeachers: Teacher[]): Teacher[] => {
     if (!className) return [];
 
     const cleanedClassName = cleanTeacherName(className).toLowerCase();
     const foundTeachers: Teacher[] = [];
 
-    // First, try a direct match for the entire string (e.g., "Fabiano de Souza Oliveira e Luerbio Faria")
-    const directMatch = allTeachers.find(t => t.name.toLowerCase() === cleanedClassName);
-    if (directMatch) {
-        return [directMatch];
-    }
-
-    // If no direct match, check if any teacher's full name is contained within the class name string.
+    // Iterate through all evaluated teachers to see if their name is a part of the official class name.
     for (const teacher of allTeachers) {
         if (cleanedClassName.includes(teacher.name.toLowerCase())) {
             foundTeachers.push(teacher);
@@ -73,6 +67,14 @@ const findMatchingTeachers = (className: string, allTeachers: Teacher[]): Teache
             }
         }
         return Array.from(uniqueTeachers);
+    }
+    
+    // Fallback for direct match if no substring matches are found (e.g., class name is just "Luerbio")
+    if(foundTeachers.length === 0) {
+        const directMatch = allTeachers.find(t => t.name.toLowerCase() === cleanedClassName);
+        if (directMatch) {
+            return [directMatch];
+        }
     }
 
     return foundTeachers;
