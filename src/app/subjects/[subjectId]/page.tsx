@@ -18,6 +18,7 @@ import {
 import type { Teacher, Review } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import ClassInfoCard from '@/components/class-info-card';
+import { cleanTeacherName } from '@/lib/utils';
 
 
 interface SubjectProfilePageProps {
@@ -157,7 +158,8 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {subjectData.classes.map(classInfo => {
-                                const teacher = allTeachersMap.get(classInfo.teacher);
+                                const teacherName = cleanTeacherName(classInfo.teacher);
+                                const teacher = allTeachersMap.get(teacherName);
                                 return (
                                     <ClassInfoCard 
                                         key={classInfo.id} 
