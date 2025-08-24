@@ -37,59 +37,104 @@ const dayMap: { [key: string]: string } = {
 export function formatSchedule(scheduleString: string | null | undefined): string {
     if (!scheduleString) return 'Horário a definir';
 
-    // Ex: "2M124T3" -> ["2M124", "T3"] (errado) -> queremos ["2M124T3"]
-    // Ex: "3M34 5M34" -> ["3M34", "5M34"] (certo)
-    // O regex agora procura por um dia da semana ([2-7]) seguido por qualquer combinação de turnos e aulas.
-    const scheduleParts = scheduleString.match(/([2-7][MTN][0-9]+)/g);
+    const scheduleParts = scheduleString.match(/[2-7][MTN][0-9MTN]+/g);
     if (!scheduleParts) return 'Horário a definir';
 
-    const dailySchedules: { [key: string]: string[] } = {};
+    const dailySchedules: { [dayCode: string]: string[] } = {};
 
     for (const part of scheduleParts) {
         const dayCode = part[0];
-        // Extrai os blocos de horário, ex: "M124" -> ["M1", "M2", "M4"]
-        const timeCodesRaw = part.substring(1); // "M124"
-        const timeCodes = timeCodesRaw.match(/[MTN][1-6]/g) || []; // ["M1", "M2", "M4"] (exemplo corrigido)
-        
         if (!dailySchedules[dayCode]) {
             dailySchedules[dayCode] = [];
         }
-        dailySchedules[dayCode].push(...timeCodes);
-    }
-    
-    const formattedDays: string[] = [];
 
-    for (const dayCode in dailySchedules) {
-        const dayName = dayMap[dayCode];
-        const timeSlots = dailySchedules[dayCode];
+        const timePart = part.substring(1); // e.g., M1M2 or T12
         
-        if (timeSlots.length > 0) {
-            // Ordena os slots para garantir a contiguidade correta, ex: T1, M1 -> M1, T1
-            timeSlots.sort((a, b) => {
-              const aTurn = a.charAt(0);
-              const bTurn = b.charAt(0);
-              const aNum = parseInt(a.substring(1));
-              const bNum = parseInt(b.substring(1));
+        let currentTurn = '';
+        let currentBlock = '';
 
-              if (aTurn !== bTurn) {
-                return aTurn.localeCompare(bTurn);
-              }
-              return aNum - bNum;
-            });
-
-            const firstSlot = timeSlotMap[timeSlots[0]];
-            const lastSlot = timeSlotMap[timeSlots[timeSlots.length - 1]];
-            
-            if (firstSlot && lastSlot) {
-                const startTime = firstSlot.split('-')[0];
-                const endTime = lastSlot.split('-')[1];
-                formattedDays.push(`${dayName} ${startTime}-${endTime}`);
+        for (const char of timePart) {
+            if (['M', 'T', 'N'].includes(char)) {
+                if (currentBlock) {
+                    // Process previous block
+                    for (const num of currentBlock) {
+                        dailySchedules[dayCode].push(`${currentTurn}${num}`);
+                    }
+                }
+                currentTurn = char;
+                currentBlock = '';
+            } else if (/[1-6]/.test(char)) {
+                currentBlock += char;
+            }
+        }
+        if (currentBlock) {
+             for (const num of currentBlock) {
+                dailySchedules[dayCode].push(`${currentTurn}${num}`);
             }
         }
     }
 
+    const formattedDays: string[] = [];
+
+    Object.keys(dailySchedules).sort().forEach(dayCode => {
+        const dayName = dayMap[dayCode];
+        const timeSlots = dailySchedules[dayCode];
+
+        if (timeSlots.length > 0) {
+            timeSlots.sort((a, b) => {
+                const turnOrder = { 'M': 1, 'T': 2, 'N': 3 };
+                const aTurn = a.charAt(0) as keyof typeof turnOrder;
+                const bTurn = b.charAt(0) as keyof typeof turnOrder;
+                const aNum = parseInt(a.substring(1));
+                const bNum = parseInt(b.substring(1));
+
+                if (aTurn !== bTurn) {
+                    return turnOrder[aTurn] - turnOrder[bTurn];
+                }
+                return aNum - bNum;
+            });
+
+            const mergedSlots: string[] = [];
+            let currentGroup: string[] = [];
+
+            const isConsecutive = (slot1: string, slot2: string): boolean => {
+                const turn1 = slot1.charAt(0);
+                const turn2 = slot2.charAt(0);
+                const num1 = parseInt(slot1.substring(1));
+                const num2 = parseInt(slot2.substring(1));
+                return turn1 === turn2 && num2 === num1 + 1 && timeSlotMap[slot1]?.split('-')[1] === timeSlotMap[slot2]?.split('-')[0];
+            };
+
+            for (let i = 0; i < timeSlots.length; i++) {
+                if (currentGroup.length === 0) {
+                    currentGroup.push(timeSlots[i]);
+                } else if (isConsecutive(currentGroup[currentGroup.length - 1], timeSlots[i])) {
+                    currentGroup.push(timeSlots[i]);
+                } else {
+                    const firstSlot = timeSlotMap[currentGroup[0]];
+                    const lastSlot = timeSlotMap[currentGroup[currentGroup.length - 1]];
+                    if (firstSlot && lastSlot) {
+                        mergedSlots.push(`${firstSlot.split('-')[0]}-${lastSlot.split('-')[1]}`);
+                    }
+                    currentGroup = [timeSlots[i]];
+                }
+            }
+            if (currentGroup.length > 0) {
+                const firstSlot = timeSlotMap[currentGroup[0]];
+                const lastSlot = timeSlotMap[currentGroup[currentGroup.length - 1]];
+                if (firstSlot && lastSlot) {
+                    mergedSlots.push(`${firstSlot.split('-')[0]}-${lastSlot.split('-')[1]}`);
+                }
+            }
+
+            if (mergedSlots.length > 0) {
+                formattedDays.push(`${dayName} ${mergedSlots.join(', ')}`);
+            }
+        }
+    });
+
     if (formattedDays.length === 0) {
-        return scheduleString; // Retorna a string original se nada for formatado
+        return scheduleString; 
     }
 
     return formattedDays.join(' | ');
@@ -97,5 +142,6 @@ export function formatSchedule(scheduleString: string | null | undefined): strin
 
 export function cleanTeacherName(name: string | undefined | null): string {
     if (!name) return '';
-    return name.trim();
+    // Remove "Vagas para..." e espaços em branco extras
+    return name.replace(/Vagas para.*/, '').trim();
 }

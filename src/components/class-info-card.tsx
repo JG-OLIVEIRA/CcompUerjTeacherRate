@@ -9,7 +9,7 @@ import { Progress } from './ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Separator } from './ui/separator';
 import Link from 'next/link';
-import { cn, formatSchedule } from '@/lib/utils';
+import { cn, formatSchedule, cleanTeacherName } from '@/lib/utils';
 import StarRating from './star-rating';
 
 interface ClassInfoCardProps {
@@ -63,7 +63,7 @@ export default function ClassInfoCard({ classInfo, teacher }: ClassInfoCardProps
     const totalOccupied = classInfo.occupied_uerj + classInfo.occupied_vestibular;
     const occupancyRate = totalVacancies > 0 ? (totalOccupied / totalVacancies) * 100 : 0;
     
-    const teacherNameToDisplay = classInfo.teacher || 'Docente a definir';
+    const teacherNameToDisplay = cleanTeacherName(classInfo.teacher) || 'Docente a definir';
     const formattedTime = formatSchedule(classInfo.times);
 
 

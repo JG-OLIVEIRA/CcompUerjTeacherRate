@@ -85,7 +85,7 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
 
   const topTeacherId = evaluatedTeachersForSubject.length > 0 ? evaluatedTeachersForSubject[0].id : null;
   
-  const allTeachersMap = new Map(allTeachers.map(t => [t.name, t]));
+  const allTeachersMap = new Map(allTeachers.map(t => [cleanTeacherName(t.name).toLowerCase(), t]));
 
 
   const headerContent = (
@@ -158,7 +158,7 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {subjectData.classes.map(classInfo => {
-                                const teacherName = cleanTeacherName(classInfo.teacher);
+                                const teacherName = cleanTeacherName(classInfo.teacher).toLowerCase();
                                 const teacher = allTeachersMap.get(teacherName);
                                 return (
                                     <ClassInfoCard 
