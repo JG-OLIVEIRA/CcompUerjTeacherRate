@@ -35,11 +35,6 @@ const calculateAverageRating = (reviews: Review[]): number => {
     return total / validReviews.length;
 };
 
-const cleanTeacherName = (name: string | undefined): string => {
-    if (!name) return '';
-    // Remove "Vagas..." e também potenciais espaços extras no final.
-    return name.split('Vagas')[0].trim();
-}
 
 // Componente de página com a tipagem corrigida
 export default async function SubjectProfilePage({ params }: SubjectProfilePageProps) {
@@ -162,9 +157,7 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {subjectData.classes.map(classInfo => {
-                                const cleanedTeacherName = cleanTeacherName(classInfo.teacher);
-                                // Find teacher in the comprehensive list of all teachers
-                                const teacher = allTeachersMap.get(cleanedTeacherName);
+                                const teacher = allTeachersMap.get(classInfo.teacher);
                                 return (
                                     <ClassInfoCard 
                                         key={classInfo.id} 

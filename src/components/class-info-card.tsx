@@ -63,12 +63,7 @@ export default function ClassInfoCard({ classInfo, teacher }: ClassInfoCardProps
     const totalOccupied = classInfo.occupied_uerj + classInfo.occupied_vestibular;
     const occupancyRate = totalVacancies > 0 ? (totalOccupied / totalVacancies) * 100 : 0;
     
-    const cleanTeacherName = (name: string | undefined): string => {
-        if (!name) return 'Docente a definir';
-        return name.split('Vagas')[0].trim();
-    }
-
-    const teacherNameToDisplay = cleanTeacherName(classInfo.teacher);
+    const teacherNameToDisplay = classInfo.teacher || 'Docente a definir';
     const formattedTime = formatSchedule(classInfo.times);
 
 
