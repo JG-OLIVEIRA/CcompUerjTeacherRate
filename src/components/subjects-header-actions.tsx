@@ -2,7 +2,7 @@
 'use client';
 
 import Link from "next/link";
-import { ArrowLeft, ListChecks } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -12,10 +12,6 @@ export default function SubjectsHeaderActions() {
             <Link href="/" className={cn(buttonVariants({ variant: "outline" }))}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar para Professores
-            </Link>
-            <Link href="/disciplinas-uerj" className={cn(buttonVariants({ variant: "default" }))}>
-                <ListChecks className="mr-2 h-4 w-4" />
-                Consultar Disciplinas UERJ
             </Link>
         </div>
     )

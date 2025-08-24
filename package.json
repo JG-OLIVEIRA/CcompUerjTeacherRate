@@ -10,9 +10,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "next": "next",
-    "dev:next": "next dev",
-    "dev:health": "node src/health-check.js"
+    "next": "next"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.2.0",
@@ -53,7 +51,6 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.2",
     "recharts": "^2.15.1",
-    "selenium-webdriver": "^4.22.0",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.8"
@@ -65,8 +62,6 @@
     "@types/jest": "^29.5.12",
     "@types/node": "^20",
     "@types/pg": "^8.11.6",
-    "@types/react": "^18",
-    "@types/selenium-webdriver": "^4.1.22",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8",
