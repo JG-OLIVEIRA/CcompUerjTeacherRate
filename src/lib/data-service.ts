@@ -35,57 +35,9 @@ export async function getSubjects(): Promise<Subject[]> {
     try {
         const subjectsMap: Map<string, Subject> = new Map();
 
-        // Step 1: Use `classes` as the source of truth for available subjects and their periods.
-        const availableSubjectsResult = await client.query('SELECT DISTINCT discipline_name FROM classes ORDER BY discipline_name;');
-        
-        for (const row of availableSubjectsResult.rows) {
-            const rawDisciplineName = row.discipline_name.trim();
-            // Expected format: "11124 - CÁLCULO I"
-            const match = rawDisciplineName.match(/^(\d+)\s*-\s*(.+)$/);
-            
-            if (match) {
-                const code = match[1];
-                const subjectName = match[2].trim();
-                const subjectNameLC = subjectName.toLowerCase();
-
-                // The first digit of the code determines the period.
-                const period = parseInt(code.charAt(0), 10);
-
-                if (!subjectsMap.has(subjectNameLC)) {
-                    subjectsMap.set(subjectNameLC, {
-                        id: subjectsMap.size + 1, // Placeholder ID
-                        name: subjectName,
-                        iconName: assignIconName(subjectName),
-                        teachers: [],
-                        period: isNaN(period) ? undefined : period,
-                    });
-                }
-            } else if (!subjectsMap.has(rawDisciplineName.toLowerCase())) {
-                 // Fallback for names that don't match the "CODE - NAME" format
-                 subjectsMap.set(rawDisciplineName.toLowerCase(), {
-                    id: subjectsMap.size + 1,
-                    name: rawDisciplineName,
-                    iconName: assignIconName(rawDisciplineName),
-                    teachers: [],
-                });
-            }
-        }
-        
-        // Step 2: Get subject IDs from the `subjects` table and update the map.
-        const allSubjectsResult = await client.query('SELECT id, name FROM subjects;');
-        for (const row of allSubjectsResult.rows) {
-            const subjectName = row.name.trim();
-            const subjectNameLC = subjectName.toLowerCase();
-            if (subjectsMap.has(subjectNameLC)) {
-                const subject = subjectsMap.get(subjectNameLC)!;
-                subject.id = row.id;
-            }
-        }
-
-
         const dataQuery = `
             SELECT 
-                r.subject_id,
+                s.id as subject_id,
                 s.name as subject_name,
                 t.id as teacher_id,
                 t.name as teacher_name,
@@ -96,46 +48,73 @@ export async function getSubjects(): Promise<Subject[]> {
                 r.downvotes as review_downvotes,
                 r.created_at as review_created_at,
                 r.report_count
-            FROM reviews r
-            JOIN teachers t ON r.teacher_id = t.id
-            JOIN subjects s ON r.subject_id = s.id
-            WHERE r.reported = false;
+            FROM subjects s
+            LEFT JOIN reviews r ON s.id = r.subject_id AND r.reported = false
+            LEFT JOIN teachers t ON r.teacher_id = t.id;
         `;
-        
-        const dataResult = await client.query(dataQuery);
 
+        const classesQuery = 'SELECT * FROM classes;';
+
+        const [dataResult, classesResult] = await Promise.all([
+            client.query(dataQuery),
+            client.query(classesQuery)
+        ]);
+
+        const classesMap: Map<string, ClassInfo[]> = new Map();
+        for (const row of classesResult.rows) {
+            // Normalize discipline_name from "IME04-10841 Compiladores" to "Compiladores"
+            const disciplineName = row.discipline_name.replace(/^.*?\s/, '').trim().toLowerCase();
+            if (!classesMap.has(disciplineName)) {
+                classesMap.set(disciplineName, []);
+            }
+            classesMap.get(disciplineName)!.push(row);
+        }
+        
         const teachersMap: Map<string, Teacher> = new Map(); // Key: "teacherId-subjectId"
 
         for (const row of dataResult.rows) {
-            const subjectNameLC = row.subject_name.trim().toLowerCase();
-            const subject = subjectsMap.get(subjectNameLC);
-            if (!subject) continue;
+            const subjectName = row.subject_name.trim();
+            const subjectNameLC = subjectName.toLowerCase();
+            let subject = subjectsMap.get(subjectNameLC);
 
-            const teacherKey = `${row.teacher_id}-${row.subject_id}`;
-            let teacher = teachersMap.get(teacherKey);
-
-            if (!teacher) {
-                teacher = {
-                    id: row.teacher_id,
-                    name: row.teacher_name,
-                    subject: subject.name,
-                    reviews: [],
-                    averageRating: 0,
+            if (!subject) {
+                subject = {
+                    id: row.subject_id,
+                    name: subjectName,
+                    iconName: assignIconName(subjectName),
+                    teachers: [],
+                    classes: classesMap.get(subjectNameLC) || [],
                 };
-                teachersMap.set(teacherKey, teacher);
-                subject.teachers.push(teacher);
+                subjectsMap.set(subjectNameLC, subject);
             }
             
-            if (row.review_id && !teacher.reviews.some(rev => rev.id === row.review_id)) {
-                 teacher.reviews.push({
-                    id: row.review_id,
-                    text: row.review_text || '',
-                    rating: row.review_rating || 0,
-                    upvotes: row.review_upvotes || 0,
-                    downvotes: row.review_downvotes || 0,
-                    createdAt: row.review_created_at?.toISOString() || '',
-                    report_count: row.report_count || 0,
-                });
+            if (row.teacher_id) {
+                const teacherKey = `${row.teacher_id}-${row.subject_id}`;
+                let teacher = teachersMap.get(teacherKey);
+    
+                if (!teacher) {
+                    teacher = {
+                        id: row.teacher_id,
+                        name: row.teacher_name,
+                        subject: subject.name,
+                        reviews: [],
+                        averageRating: 0,
+                    };
+                    teachersMap.set(teacherKey, teacher);
+                    subject.teachers.push(teacher);
+                }
+                
+                if (row.review_id && !teacher.reviews.some(rev => rev.id === row.review_id)) {
+                     teacher.reviews.push({
+                        id: row.review_id,
+                        text: row.review_text || '',
+                        rating: row.review_rating || 0,
+                        upvotes: row.review_upvotes || 0,
+                        downvotes: row.review_downvotes || 0,
+                        createdAt: row.review_created_at?.toISOString() || '',
+                        report_count: row.report_count || 0,
+                    });
+                }
             }
         }
         
@@ -144,6 +123,21 @@ export async function getSubjects(): Promise<Subject[]> {
                 teacher.averageRating = calculateAverageRating(teacher.reviews);
             });
             subject.teachers.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0));
+        });
+
+        // Ensure all subjects from classes table are included, even if they have no reviews/teachers yet
+        classesMap.forEach((classes, subjectNameLC) => {
+            if (!subjectsMap.has(subjectNameLC)) {
+                 // Extract the capitalized name from the first class entry
+                const properName = classes[0].discipline_name.replace(/^.*?\s/, '').trim();
+                subjectsMap.set(subjectNameLC, {
+                    id: 0, // Placeholder ID, might need adjustment if ID is crucial elsewhere
+                    name: properName,
+                    iconName: assignIconName(properName),
+                    teachers: [],
+                    classes: classes,
+                });
+            }
         });
 
         return Array.from(subjectsMap.values());
@@ -180,7 +174,7 @@ export async function addTeacherOrReview(data: {
         // For each subject, create the review
         for (const subjectName of data.subjectNames) {
             let subjectId;
-            const subjectResult = await client.query('SELECT id FROM subjects WHERE name = $1', [subjectName]);
+            const subjectResult = await client.query('SELECT id FROM subjects WHERE name ILIKE $1', [subjectName]);
             if (subjectResult.rowCount === 0) {
                 // If subject doesn't exist, create it.
                 const newSubjectResult = await client.query('INSERT INTO subjects (name) VALUES ($1) RETURNING id', [subjectName]);

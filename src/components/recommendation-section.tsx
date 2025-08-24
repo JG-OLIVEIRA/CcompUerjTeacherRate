@@ -4,10 +4,11 @@
 import { useMemo } from 'react';
 import type { Subject, Teacher } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
-import { Lightbulb, Star } from 'lucide-react';
+import { Lightbulb, Star, Users } from 'lucide-react';
 import { Badge } from './ui/badge';
 import Link from 'next/link';
 import { prerequisites } from './course-flowchart';
+import { cleanTeacherName } from '@/lib/utils';
 
 interface RecommendationSectionProps {
   allSubjects: Subject[];
@@ -22,24 +23,48 @@ export default function RecommendationSection({ allSubjects, completedSubjects, 
 
     const completedSet = new Set(completedSubjects);
     
-    // Find all subjects that haven't been completed yet.
-    const futureSubjects = allSubjects.filter(s => !completedSet.has(s.name));
+    // Find all subjects that haven't been completed yet but have classes available.
+    const futureSubjects = allSubjects.filter(s => 
+        !completedSet.has(s.name) && s.classes && s.classes.length > 0
+    );
     
-    const teacherSuggestions: { subjectName: string, teacher: Teacher, subjectId: number }[] = [];
+    const teacherSuggestions: { 
+        subjectName: string, 
+        teacher: Teacher | { name: string, averageRating?: number }, 
+        subjectId: number 
+    }[] = [];
+
+    const allTeachersMap = new Map(allTeachers.map(t => [t.name.toLowerCase(), t]));
 
     futureSubjects.forEach(subject => {
         const subjectPrereqs = prerequisites[subject.name] || [];
         const prereqsMet = subjectPrereqs.every(prereq => completedSet.has(prereq));
 
         if (prereqsMet) {
-            const teachersForSubject = allTeachers.filter(teacher => teacher.subjects?.has(subject.name));
+            // Find teachers for the available classes of this subject
+            const teachersInClasses = new Set(subject.classes?.map(c => cleanTeacherName(c.teacher).toLowerCase()));
+            const availableTeachers = Array.from(teachersInClasses)
+                .map(name => allTeachersMap.get(name))
+                .filter((t): t is Teacher => !!t);
 
-            if(teachersForSubject.length > 0) {
-                const topTeacher = [...teachersForSubject].sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0))[0];
+            if (availableTeachers.length > 0) {
+                // Find the best-rated teacher among those who are actually teaching
+                const topTeacher = [...availableTeachers].sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0))[0];
                 
-                if(topTeacher && (topTeacher.averageRating ?? 0) > 0) {
-                    teacherSuggestions.push({ subjectName: subject.name, teacher: topTeacher, subjectId: subject.id });
+                if (topTeacher) {
+                    teacherSuggestions.push({ 
+                        subjectName: subject.name, 
+                        teacher: topTeacher, 
+                        subjectId: subject.id 
+                    });
                 }
+            } else if (subject.classes && subject.classes.length > 0) {
+                 // Case where class exists but teacher is not in our reviewed list (or is "A DEFINIR")
+                 teacherSuggestions.push({
+                     subjectName: subject.name,
+                     teacher: { name: cleanTeacherName(subject.classes[0].teacher) || "A definir" },
+                     subjectId: subject.id
+                 })
             }
         }
     });
@@ -85,23 +110,28 @@ export default function RecommendationSection({ allSubjects, completedSubjects, 
                 Sugestões para o Próximo Período
             </CardTitle>
             <CardDescription>
-                Com base nas matérias que você cursou, aqui estão as sugestões de matérias com os professores mais bem avaliados.
+                Com base nas matérias que você cursou, aqui estão as sugestões de matérias com os professores mais bem avaliados que possuem turmas abertas.
             </CardDescription>
         </CardHeader>
         <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 {recommendations.map(({ subjectName, teacher, subjectId }) => (
-                    <Link href={`/subjects/${subjectId}`} key={subjectId} className="p-3 border rounded-lg bg-background text-center shadow-sm hover:border-primary transition-colors hover:-translate-y-0.5 flex flex-col justify-between">
+                    <Link href={`/subjects/${subjectId}`} key={`${subjectId}-${teacher.name}`} className="p-3 border rounded-lg bg-background text-center shadow-sm hover:border-primary transition-colors hover:-translate-y-0.5 flex flex-col justify-between">
                         <div>
                             <p className="text-sm font-semibold truncate" title={subjectName}>{subjectName}</p>
-                            <p className="text-xs text-muted-foreground mt-1 mb-2">
-                                Sugestão: <span className="text-primary font-medium">Prof. {teacher.name}</span>
-                            </p>
+                            <div className="text-xs text-muted-foreground mt-1 mb-2 space-y-1">
+                                <div className="flex items-center justify-center gap-1.5">
+                                    <Users className="h-3 w-3" />
+                                    <span className="text-primary font-medium truncate">{teacher.name}</span>
+                                </div>
+                                {teacher.averageRating !== undefined && teacher.averageRating > 0 && (
+                                    <Badge variant="outline" className="text-xs">
+                                        <Star className="h-3 w-3 mr-1 text-amber-500 fill-amber-500" />
+                                        {teacher.averageRating?.toFixed(1)} de Média
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
-                        <Badge variant="outline">
-                            <Star className="h-3 w-3 mr-1 text-amber-500 fill-amber-500" />
-                            {teacher.averageRating?.toFixed(1)} de Média
-                        </Badge>
                     </Link>
                 ))}
             </div>
