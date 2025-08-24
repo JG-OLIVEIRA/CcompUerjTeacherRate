@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -76,21 +75,6 @@ export default function ClassInfoCard({ classInfo, teacher }: ClassInfoCardProps
             <CardHeader>
                 <div className="flex justify-between items-start gap-2">
                     <CardTitle>Turma {classInfo.number}</CardTitle>
-                    {classInfo.preferential && (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                     <Badge variant="outline" className="border-amber-500 text-amber-600">
-                                        <Star className="h-3 w-3 mr-1.5" />
-                                        Preferencial
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Esta turma é preferencial para calouros.</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
                 </div>
                 <CardDescription className="pt-1">
                     <div className="flex items-center gap-2 group">
