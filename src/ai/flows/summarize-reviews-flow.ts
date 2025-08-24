@@ -11,6 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type {Review} from '@/lib/types';
+import { gemini15Flash } from '@genkit-ai/googleai';
 
 // Define the structure of a single review for the AI prompt
 const ReviewSchema = z.object({
@@ -42,6 +43,7 @@ export async function summarizeReviews(input: SummarizeReviewsInput): Promise<Su
 
 const prompt = ai.definePrompt({
   name: 'summarizeReviewsPrompt',
+  model: gemini15Flash,
   input: {schema: SummarizeReviewsInputSchema},
   output: {schema: SummarizeReviewsOutputSchema},
   prompt: `

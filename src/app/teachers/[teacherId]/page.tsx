@@ -41,9 +41,9 @@ const AiSummaryCard = async ({ teacher }: { teacher: NonNullable<Awaited<ReturnT
           <Sparkles className="h-6 w-6 text-primary" />
           <span>Resumo da IA</span>
         </CardTitle>
-        <CardDescription>
+        <div className="text-sm text-muted-foreground pt-1.5">
             Uma análise espirituosa (e talvez um pouco sarcástica) das avaliações, gerada por IA.
-        </CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
         <blockquote className="text-foreground/90 italic border-l-4 border-primary pl-4">
