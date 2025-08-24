@@ -18,6 +18,7 @@ import {
 import type { Teacher, Review } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import ClassInfoCard from '@/components/class-info-card';
+import type { IconName } from '@/components/header';
 
 
 interface SubjectProfilePageProps {
@@ -145,7 +146,7 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
   return (
     <MainLayout headerProps={{
       pageTitle: subjectData.name,
-      pageIconName: subjectData.iconName as any,
+      pageIconName: subjectData.iconName as IconName,
       children: headerContent
     }}>
         <div className="container mx-auto px-4 py-8">
