@@ -147,15 +147,3 @@ export function cleanTeacherName(name: string | undefined | null): string {
     // Remove "Vagas para..." e espaços em branco extras
     return name.replace(/Vagas para.*/, '').trim();
 }
-
-// Mapeamento de disciplinas para períodos.
-export const subjectToSemesterMap: { [key: string]: number } = {
-    "Geometria Analítica": 1, "Cálculo I": 1, "Álgebra": 1, "Matemática Discreta": 1, "Fundamentos da Computação": 1,
-    "Álgebra Linear": 2, "Cálculo II": 2, "Cálculo das Probabilidades": 2, "Algoritmos e Est. de Dados I": 2, "Linguagem de Programação I": 2, "Física I": 2,
-    "Português Instrumental": 3, "Cálculo III": 3, "Algoritmos e Est. de Dados II": 3, "Elementos de Lógica": 3, "Linguagem de Programação II": 3, "Teoria da Computação": 3,
-    "Cálculo Numérico": 4, "Cálculo IV": 4, "Algoritmos em Grafos": 4, "Engenharia de Software": 4, "Arquitetura de Computadores I": 4, "Física II": 4,
-    "Estruturas de Linguagens": 5, "Banco de Dados I": 5, "Otimização em Grafos": 5, "Análise e Proj. de Sistemas": 5, "Sistemas Operacionais I": 5, "Arquitetura de Computadores II": 5, "Eletiva Básica": 5,
-    "Otimização Combinatória": 6, "Banco de Dados II": 6, "Interfaces Humano-Comp.": 6, "Eletiva I": 6, "Sistemas Operacionais II": 6, "Compiladores": 6,
-    "Computação Gráfica": 7, "Inteligência Artificial": 7, "Ética Comp. e Sociedade": 7, "Metod. Cient. no Projeto Final": 7, "Redes de Computadores I": 7, "Arq. Avançadas de Computadores": 7,
-    "Eletiva II": 8, "Eletiva III": 8, "Projeto Final": 8, "Sistemas Distribuídos": 8, "Eletiva IV": 8,
-};

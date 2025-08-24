@@ -53,6 +53,7 @@ export interface Subject {
   iconName: string;
   teachers: Teacher[];
   classes?: ClassInfo[];
+  period?: number;
 }
 
 export interface SubjectLink {
