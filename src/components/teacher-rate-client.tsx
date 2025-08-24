@@ -29,8 +29,9 @@ export default function TeacherRateClient({ initialSubjectsData, allTeachers }: 
 
     const grouped: Record<string, Subject[]> = {};
     for (const subject of filtered) {
-      // Normalize both names for comparison
-      const subjectNameLower = subject.name.toLowerCase();
+      // Clean the name at the point of use to ensure consistency
+      const cleanName = subject.name.replace(/^[A-Z]{3}\d{2}-\d{5}\s/, '').trim();
+      const subjectNameLower = cleanName.toLowerCase();
       const periodNumber = subjectToSemesterMap[subjectNameLower as keyof typeof subjectToSemesterMap];
       const periodKey = periodNumber ? `${periodNumber}º Período` : 'Outras';
       

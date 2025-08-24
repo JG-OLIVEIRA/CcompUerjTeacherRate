@@ -44,7 +44,7 @@ export async function getSubjects(): Promise<Subject[]> {
         
         // 2. Process classes to populate subjectsMap
         for (const classRow of classesResult.rows) {
-            const cleanName = classRow.discipline_name.replace(/^.*?\s/, '').trim();
+            const cleanName = classRow.discipline_name.replace(/^[A-Z]{3}\d{2}-\d{5}\s/, '').trim();
             
             // Find or create subject
             let subjectRes = await client.query('SELECT id FROM subjects WHERE name ILIKE $1', [cleanName]);
