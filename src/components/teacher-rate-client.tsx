@@ -23,7 +23,7 @@ export default function TeacherRateClient({ initialSubjectsData, allTeachers }: 
   const subjectsWithPeriods = useMemo(() => {
     return initialSubjectsData.map(subject => ({
       ...subject,
-      period: subjectToSemesterMap[subject.name] || undefined,
+      period: subjectToSemesterMap[subject.name],
     }));
   }, [initialSubjectsData]);
 
@@ -39,15 +39,19 @@ export default function TeacherRateClient({ initialSubjectsData, allTeachers }: 
   }, [subjectsWithPeriods, searchQuery]);
 
   const groupedSubjects = useMemo(() => {
-    const groups: { [key: number]: Subject[] } = {};
+    const groups: { [key: string]: Subject[] } = {};
     filteredSubjects.forEach(subject => {
-        const semester = subject.period || 9; // 9 para não categorizadas
+        const semester = subject.period || 'Outras';
         if (!groups[semester]) {
             groups[semester] = [];
         }
         groups[semester].push(subject);
     });
-    return Object.entries(groups).sort(([a], [b]) => parseInt(a) - parseInt(b));
+     return Object.entries(groups).sort(([a], [b]) => {
+        if (a === 'Outras') return 1;
+        if (b === 'Outras') return -1;
+        return parseInt(a) - parseInt(b);
+    });
   }, [filteredSubjects]);
 
 
@@ -81,7 +85,7 @@ export default function TeacherRateClient({ initialSubjectsData, allTeachers }: 
                 {groupedSubjects.map(([semester, subjects]) => (
                     <div key={semester}>
                         <h3 className="text-xl font-semibold mb-3 pl-2 border-l-4 border-primary">
-                            {parseInt(semester) <= 8 ? `${semester}º Período` : 'Outras'}
+                            {semester === 'Outras' ? 'Outras' : `${semester}º Período`}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {subjects.map(subject => (
