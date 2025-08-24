@@ -5,7 +5,9 @@ import Link from 'next/link';
 import type { Teacher } from '@/lib/types';
 import StarRating from './star-rating';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback } from './ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import Image from 'next/image';
+
 
 interface TeacherListItemProps {
   teacher: Teacher;
@@ -32,6 +34,7 @@ export default function TeacherListItem({ teacher }: TeacherListItemProps) {
         )}
     >
         <Avatar className="h-12 w-12 text-lg">
+            <AvatarImage src={`https://i.imgur.com/8l5d5Am.png`} alt={`Foto de ${name}`} />
             <AvatarFallback className="bg-secondary text-secondary-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                 {getInitials(name)}
             </AvatarFallback>
