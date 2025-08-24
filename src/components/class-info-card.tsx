@@ -1,6 +1,7 @@
 
 'use client';
 
+import React from 'react';
 import type { ClassInfo, Teacher } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
