@@ -17,8 +17,12 @@ const flowchartData = [
     { semester: 8, subjects: ["eletiva ii", "eletiva iii", "projeto final", "sistemas distribuídos", "eletiva iv"] },
 ];
 
-const totalSubjects = flowchartData.reduce((sum, semester) => sum + semester.subjects.length, 0);
-const AVG_SUBJECTS_PER_SEMERTER = 6;
+const mandatorySubjectsList = flowchartData
+    .flatMap(s => s.subjects)
+    .filter(subj => !subj.toLowerCase().includes('eletiva'));
+    
+const totalMandatorySubjects = mandatorySubjectsList.length;
+const AVG_SUBJECTS_PER_SEMESTER = 6;
 
 
 export const prerequisites: { [subject: string]: string[] } = {
@@ -115,15 +119,16 @@ export default function CourseFlowchart({ onCompletedChange }: CourseFlowchartPr
     return null;
   }
   
-  const remainingSubjects = totalSubjects - completedSubjects.size;
-  const remainingSemesters = Math.ceil(remainingSubjects / AVG_SUBJECTS_PER_SEMERTER);
+  const completedMandatoryCount = Array.from(completedSubjects).filter(s => mandatorySubjectsList.includes(s)).length;
+  const remainingSubjects = totalMandatorySubjects - completedMandatoryCount;
+  const remainingSemesters = Math.ceil(remainingSubjects / AVG_SUBJECTS_PER_SEMESTER);
   
   const getGraduationForecast = (): string => {
     if (remainingSemesters <= 0) return "Concluído!";
     
     const now = new Date();
     let year = now.getFullYear();
-    // UERJ semester 1 is Jan-Jul (months 0-6), semester 2 is Aug-Dec (months 7-11)
+    // UERJ semester 1 is Jan-Jun (months 0-6), semester 2 is Aug-Dec (months 7-11)
     let semester = now.getMonth() < 7 ? 1 : 2;
 
     for (let i = 0; i < remainingSemesters; i++) {
@@ -158,7 +163,7 @@ export default function CourseFlowchart({ onCompletedChange }: CourseFlowchartPr
                 <div className='flex items-center gap-3'>
                     <div className='flex items-center gap-2'>
                          <CheckSquare className='h-4 w-4 text-primary' />
-                        <span className='font-medium'>Matérias Restantes:</span>
+                        <span className='font-medium'>Matérias Obrigatórias Restantes:</span>
                     </div>
                     <span className='font-bold text-base'>{remainingSubjects}</span>
                 </div>
