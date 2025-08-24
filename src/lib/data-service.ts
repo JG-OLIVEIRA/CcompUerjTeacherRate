@@ -1,4 +1,5 @@
 
+
 /**
  * @file data-service.ts
  * 
@@ -32,31 +33,36 @@ const calculateAverageRating = (reviews: Review[]): number => {
 export async function getSubjects(): Promise<Subject[]> {
     const client = await pool.connect();
     try {
-        // Step 1: Get distinct discipline names from the classes table as the source of truth
+        // Step 1: Use `classes` as the source of truth for available subjects.
         const availableSubjectsResult = await client.query('SELECT DISTINCT discipline_name FROM classes ORDER BY discipline_name;');
-        const availableSubjectNames = new Set(availableSubjectsResult.rows.map(row => row.discipline_name.trim().toLowerCase()));
+        const subjectsMap: Map<string, Subject> = new Map(); // Key is lower-case discipline name
 
-        // Step 2: Get all subjects from the subjects table to have their IDs
-        const allSubjectsResult = await client.query('SELECT id, name FROM subjects;');
-        const subjectNameToIdMap = new Map<string, { id: number, originalName: string }>();
-        allSubjectsResult.rows.forEach(row => {
-            subjectNameToIdMap.set(row.name.trim().toLowerCase(), { id: row.id, originalName: row.name });
-        });
-
-        // Step 3: Create the initial map of subjects that are actually available
-        const subjectsMap: Map<number, Subject> = new Map();
-        availableSubjectNames.forEach(nameLC => {
-            const subjectInfo = subjectNameToIdMap.get(nameLC);
-            // Only add subjects that exist in both tables to avoid inconsistencies
-            if (subjectInfo) {
-                subjectsMap.set(subjectInfo.id, {
-                    id: subjectInfo.id,
-                    name: subjectInfo.originalName,
-                    iconName: assignIconName(subjectInfo.originalName),
+        // Step 2: Populate the initial subjects list from `classes`.
+        for (const row of availableSubjectsResult.rows) {
+            const subjectName = row.discipline_name.trim();
+            const subjectNameLC = subjectName.toLowerCase();
+            if (!subjectsMap.has(subjectNameLC)) {
+                subjectsMap.set(subjectNameLC, {
+                    // Temporarily use a placeholder ID like the index or a hash. The real ID will come from the subjects table.
+                    id: subjectsMap.size + 1,
+                    name: subjectName,
+                    iconName: assignIconName(subjectName),
                     teachers: [],
                 });
             }
-        });
+        }
+        
+        // Step 3: Get subject IDs from the `subjects` table and update the map.
+        const allSubjectsResult = await client.query('SELECT id, name FROM subjects;');
+        for (const row of allSubjectsResult.rows) {
+            const subjectName = row.name.trim();
+            const subjectNameLC = subjectName.toLowerCase();
+            if (subjectsMap.has(subjectNameLC)) {
+                const subject = subjectsMap.get(subjectNameLC)!;
+                subject.id = row.id;
+            }
+        }
+
 
         const dataQuery = `
             SELECT 
@@ -82,8 +88,9 @@ export async function getSubjects(): Promise<Subject[]> {
         const teachersMap: Map<string, Teacher> = new Map(); // Key: "teacherId-subjectId"
 
         for (const row of dataResult.rows) {
+            const subjectNameLC = row.subject_name.trim().toLowerCase();
             // Only process data for subjects that are available
-            const subject = subjectsMap.get(row.subject_id);
+            const subject = subjectsMap.get(subjectNameLC);
             if (!subject) continue;
 
             const teacherKey = `${row.teacher_id}-${row.subject_id}`;
