@@ -52,6 +52,7 @@ export interface Subject {
   id: number;
   name: string;
   iconName: string;
+  period?: number;
   teachers: Teacher[];
   classes?: ClassInfo[];
 }
