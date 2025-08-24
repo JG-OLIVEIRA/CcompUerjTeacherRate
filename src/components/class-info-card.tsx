@@ -63,6 +63,15 @@ export default function ClassInfoCard({ classInfo, evaluatedTeacher }: ClassInfo
     const totalOccupied = classInfo.occupied_uerj + classInfo.occupied_vestibular;
     const occupancyRate = totalVacancies > 0 ? (totalOccupied / totalVacancies) * 100 : 0;
     
+    const cleanTeacherName = (name: string | undefined): string => {
+        if (!name) return 'Docente a definir';
+        const vagasIndex = name.indexOf('Vagas');
+        if (vagasIndex !== -1) {
+            return name.substring(0, vagasIndex).trim();
+        }
+        return name;
+    }
+
     return (
         <Card className="flex flex-col bg-card/50">
             <CardHeader>
@@ -93,7 +102,7 @@ export default function ClassInfoCard({ classInfo, evaluatedTeacher }: ClassInfo
                                 <ChevronRightCircle className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity"/>
                             </Link>
                         ) : (
-                             <span>{classInfo.teacher || 'Docente a definir'}</span>
+                             <span>{cleanTeacherName(classInfo.teacher)}</span>
                         )}
                     </div>
                      {evaluatedTeacher && (
