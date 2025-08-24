@@ -1,6 +1,6 @@
 
 
-import { getSubjectById } from '@/lib/data-service';
+import { getSubjectById, getTeachersWithGlobalStats } from '@/lib/data-service';
 import { notFound } from 'next/navigation';
 import MainLayout from '@/components/main-layout';
 import { Button } from '@/components/ui/button';
@@ -37,11 +37,8 @@ const calculateAverageRating = (reviews: Review[]): number => {
 
 const cleanTeacherName = (name: string | undefined): string => {
     if (!name) return '';
-    const vagasIndex = name.indexOf('Vagas');
-    if (vagasIndex !== -1) {
-        return name.substring(0, vagasIndex).trim();
-    }
-    return name;
+    // Remove "Vagas..." e também potenciais espaços extras no final.
+    return name.split('Vagas')[0].trim();
 }
 
 // Componente de página com a tipagem corrigida
@@ -51,7 +48,12 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
     notFound();
   }
 
-  const subjectData = await getSubjectById(subjectId);
+  // Fetch subject data and all teachers in parallel for efficiency
+  const [subjectData, allTeachers] = await Promise.all([
+    getSubjectById(subjectId),
+    getTeachersWithGlobalStats() // Fetch all teachers to link even those without reviews for this subject
+  ]);
+
 
   if (!subjectData) {
     notFound();
@@ -80,12 +82,15 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
       });
   });
 
-  const teachers = Array.from(teachersMap.values()).map(teacher => ({
+  const evaluatedTeachersForSubject = Array.from(teachersMap.values()).map(teacher => ({
       ...teacher,
       averageRating: calculateAverageRating(teacher.reviews)
   })).sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0));
 
-  const topTeacherId = teachers.length > 0 ? teachers[0].id : null;
+  const topTeacherId = evaluatedTeachersForSubject.length > 0 ? evaluatedTeachersForSubject[0].id : null;
+  
+  const allTeachersMap = new Map(allTeachers.map(t => [t.name, t]));
+
 
   const headerContent = (
     <div className="flex flex-col items-center justify-center text-center">
@@ -131,9 +136,9 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
                     <Users className="h-7 w-7 text-primary" />
                     Professores Avaliados
                 </h2>
-                 {teachers.length > 0 ? (
+                 {evaluatedTeachersForSubject.length > 0 ? (
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {teachers.map((teacher) => (
+                        {evaluatedTeachersForSubject.map((teacher) => (
                             <TeacherCard
                                 key={teacher.id}
                                 teacher={teacher}
@@ -158,12 +163,13 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {subjectData.classes.map(classInfo => {
                                 const cleanedTeacherName = cleanTeacherName(classInfo.teacher);
-                                const evaluatedTeacher = teachers.find(t => t.name === cleanedTeacherName);
+                                // Find teacher in the comprehensive list of all teachers
+                                const teacher = allTeachersMap.get(cleanedTeacherName);
                                 return (
                                     <ClassInfoCard 
                                         key={classInfo.id} 
                                         classInfo={classInfo}
-                                        evaluatedTeacher={evaluatedTeacher}
+                                        teacher={teacher}
                                     />
                                 );
                             })}

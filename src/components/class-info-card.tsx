@@ -14,7 +14,7 @@ import StarRating from './star-rating';
 
 interface ClassInfoCardProps {
   classInfo: ClassInfo;
-  evaluatedTeacher?: Teacher;
+  teacher?: Teacher;
 }
 
 const StatItem = ({ icon: Icon, label, value, tooltip }: { icon: React.ElementType, label: string, value: string | number, tooltip?: string }) => (
@@ -58,18 +58,14 @@ const DemandIndicator = ({ label, requests, vacancies }: { label: string; reques
 };
 
 
-export default function ClassInfoCard({ classInfo, evaluatedTeacher }: ClassInfoCardProps) {
+export default function ClassInfoCard({ classInfo, teacher }: ClassInfoCardProps) {
     const totalVacancies = classInfo.offered_uerj + classInfo.offered_vestibular;
     const totalOccupied = classInfo.occupied_uerj + classInfo.occupied_vestibular;
     const occupancyRate = totalVacancies > 0 ? (totalOccupied / totalVacancies) * 100 : 0;
     
     const cleanTeacherName = (name: string | undefined): string => {
         if (!name) return 'Docente a definir';
-        const vagasIndex = name.indexOf('Vagas');
-        if (vagasIndex !== -1) {
-            return name.substring(0, vagasIndex).trim();
-        }
-        return name;
+        return name.split('Vagas')[0].trim();
     }
 
     const teacherNameToDisplay = cleanTeacherName(classInfo.teacher);
@@ -98,10 +94,10 @@ export default function ClassInfoCard({ classInfo, evaluatedTeacher }: ClassInfo
                     )}
                 </div>
                 <CardDescription className="pt-1">
-                    <div className={cn("flex items-center gap-2 group", evaluatedTeacher && "cursor-pointer")}>
+                    <div className={cn("flex items-center gap-2 group", teacher && "cursor-pointer")}>
                         <Users className="h-4 w-4" /> 
-                        {evaluatedTeacher ? (
-                             <Link href={`/teachers/${evaluatedTeacher.id}`} className="flex items-center gap-2 group-hover:underline text-foreground font-semibold">
+                        {teacher ? (
+                             <Link href={`/teachers/${teacher.id}`} className="flex items-center gap-2 group-hover:underline text-foreground font-semibold">
                                 <span>{teacherNameToDisplay}</span>
                                 <ChevronRightCircle className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity"/>
                             </Link>
@@ -109,11 +105,11 @@ export default function ClassInfoCard({ classInfo, evaluatedTeacher }: ClassInfo
                              <span>{teacherNameToDisplay}</span>
                         )}
                     </div>
-                     {evaluatedTeacher && (
+                     {teacher && teacher.averageRating !== undefined && teacher.reviews.length > 0 && (
                         <div className="flex items-center gap-2 mt-2">
-                            <StarRating rating={evaluatedTeacher.averageRating || 0} />
+                            <StarRating rating={teacher.averageRating || 0} />
                             <span className="text-sm font-bold text-muted-foreground">
-                                {(evaluatedTeacher.averageRating || 0).toFixed(1)}
+                                {(teacher.averageRating || 0).toFixed(1)}
                             </span>
                         </div>
                     )}
