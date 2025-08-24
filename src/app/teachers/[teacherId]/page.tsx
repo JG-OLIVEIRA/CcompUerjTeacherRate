@@ -5,20 +5,55 @@ import { notFound } from 'next/navigation';
 import MainLayout from '@/components/main-layout';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, MessageSquare, BookOpen, User, ShieldAlert, PlusCircle, CalendarCheck } from 'lucide-react';
+import { ArrowLeft, MessageSquare, BookOpen, User, ShieldAlert, PlusCircle, CalendarCheck, Sparkles } from 'lucide-react';
 import StarRating from '@/components/star-rating';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ViewReviewsDialog } from '@/components/view-reviews-dialog';
 import { handleAddTeacherOrReview } from '@/app/actions';
 import { AddTeacherOrReviewDialog } from '@/components/add-teacher-or-review-dialog';
+import { summarizeReviews } from '@/ai/flows/summarize-reviews-flow';
 
 interface TeacherProfilePageProps {
   params: {
     teacherId: string;
   };
 }
+
+// AI Summary Card Component
+const AiSummaryCard = async ({ teacher }: { teacher: NonNullable<Awaited<ReturnType<typeof getTeacherById>>> }) => {
+  // Only generate summary if there's at least one review with text
+  const reviewsWithText = teacher.reviews.filter(r => r.text && r.text.trim() !== '');
+  if (reviewsWithText.length === 0) {
+    return null;
+  }
+
+  const { summary } = await summarizeReviews({
+    teacherName: teacher.name,
+    reviews: reviewsWithText.map(r => ({ rating: r.rating, text: r.text })),
+  });
+
+  return (
+    <Card className="mb-8 bg-primary/10 border-primary/20">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3">
+          <Sparkles className="h-6 w-6 text-primary" />
+          <span>Resumo da IA</span>
+        </CardTitle>
+        <CardDescription>
+            Uma análise espirituosa (e talvez um pouco sarcástica) das avaliações, gerada por IA.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <blockquote className="text-foreground/90 italic border-l-4 border-primary pl-4">
+            {summary}
+        </blockquote>
+      </CardContent>
+    </Card>
+  );
+};
+
 
 export default async function TeacherProfilePage({ params }: TeacherProfilePageProps) {
   const teacherId = parseInt(params.teacherId, 10);
@@ -139,7 +174,7 @@ export default async function TeacherProfilePage({ params }: TeacherProfilePageP
                 </CardContent>
             </Card>
 
-            <Separator className="my-8" />
+            <AiSummaryCard teacher={teacher} />
             
             <div>
                 <h2 className="text-2xl font-bold tracking-tight text-foreground mb-6 flex items-center gap-3">
