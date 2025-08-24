@@ -10,13 +10,20 @@ interface FlowchartSubjectCardProps {
   className?: string;
 }
 
+// Helper function to capitalize the first letter of each word
+const capitalize = (str: string) => {
+  return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+
 export default function FlowchartSubjectCard({ subjectName, isCompleted, onClick, className }: FlowchartSubjectCardProps) {
+  const displayName = capitalize(subjectName);
+  
   return (
     <Button
       variant={isCompleted ? "default" : "outline"}
       onClick={onClick}
       className={cn(
-        "h-auto min-h-[40px] whitespace-normal justify-start py-2 transition-all text-left text-xs capitalize",
+        "h-auto min-h-[40px] whitespace-normal justify-start py-2 transition-all text-left text-xs",
         "hover:bg-primary/10 hover:border-primary",
         "bg-background",
         isCompleted && "bg-primary/80 text-primary-foreground hover:bg-primary",
@@ -24,7 +31,7 @@ export default function FlowchartSubjectCard({ subjectName, isCompleted, onClick
       )}
     >
       {isCompleted ? <CheckCircle2 className="mr-2 h-4 w-4 flex-shrink-0" /> : <Circle className="mr-2 h-4 w-4 flex-shrink-0" />}
-      <span className="flex-1">{subjectName}</span>
+      <span className="flex-1">{displayName}</span>
     </Button>
   );
 }
