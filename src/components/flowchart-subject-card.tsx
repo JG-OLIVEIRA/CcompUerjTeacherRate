@@ -16,7 +16,7 @@ export default function FlowchartSubjectCard({ subjectName, isCompleted, onClick
       variant={isCompleted ? "default" : "outline"}
       onClick={onClick}
       className={cn(
-        "h-auto min-h-[40px] whitespace-normal justify-start py-2 transition-all text-left text-xs",
+        "h-auto min-h-[40px] whitespace-normal justify-start py-2 transition-all text-left text-xs capitalize",
         "hover:bg-primary/10 hover:border-primary",
         "bg-background",
         isCompleted && "bg-primary/80 text-primary-foreground hover:bg-primary",

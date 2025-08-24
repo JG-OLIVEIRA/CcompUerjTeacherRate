@@ -1,3 +1,4 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -149,12 +150,12 @@ export function cleanTeacherName(name: string | undefined | null): string {
 
 const flowchartData = [
     { semester: 1, subjects: ["geometria analítica", "cálculo i", "álgebra", "matemática discreta", "fundamentos da computação"] },
-    { semester: 2, subjects: ["álgebra linear", "cálculo ii", "cálculo das probabilidades", "algoritmos e est. de dados i", "linguagem de programação i", "física i"] },
-    { semester: 3, subjects: ["português instrumental", "cálculo iii", "algoritmos e est. de dados ii", "elementos de lógica", "linguagem de programação ii", "teoria da computação"] },
+    { semester: 2, subjects: ["álgebra linear", "cálculo ii", "cálculo das probabilidades", "algoritmos e estruturas de dados i", "linguagem de programação i", "física i"] },
+    { semester: 3, subjects: ["português instrumental", "cálculo iii", "algoritmos e estruturas de dados ii", "elementos de lógica", "linguagem de programação ii", "teoria da computação"] },
     { semester: 4, subjects: ["cálculo numérico", "cálculo iv", "algoritmos em grafos", "engenharia de software", "arquitetura de computadores i", "física ii"] },
-    { semester: 5, subjects: ["estruturas de linguagens", "banco de dados i", "otimização em grafos", "análise e proj. de sistemas", "sistemas operacionais i", "arquitetura de computadores ii", "eletiva básica"] },
-    { semester: 6, subjects: ["otimização combinatória", "banco de dados ii", "interfaces humano-comp.", "eletiva i", "sistemas operacionais ii", "compiladores"] },
-    { semester: 7, subjects: ["computação gráfica", "inteligência artificial", "ética comp. e sociedade", "metod. cient. no projeto final", "redes de computadores i", "arq. avançadas de computadores"] },
+    { semester: 5, subjects: ["estruturas de linguagens", "banco de dados i", "otimização em grafos", "análise e projeto de sistemas", "sistemas operacionais i", "arquitetura de computadores ii", "eletiva básica"] },
+    { semester: 6, subjects: ["otimização combinatória", "banco de dados ii", "interfaces humano-computador", "eletiva i", "sistemas operacionais ii", "compiladores"] },
+    { semester: 7, subjects: ["computação gráfica", "inteligência artificial", "ética computacional e sociedade", "metodologia científica no projeto final", "redes de computadores i", "arquiteturas avançadas de computadores"] },
     { semester: 8, subjects: ["eletiva ii", "eletiva iii", "projeto final", "sistemas distribuídos", "eletiva iv"] },
 ];
 
