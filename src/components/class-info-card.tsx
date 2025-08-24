@@ -34,7 +34,7 @@ const StatItem = ({ icon: Icon, label, value, tooltip }: { icon: React.ElementTy
 
 const DemandIndicator = ({ label, requests, vacancies }: { label: string; requests: number; vacancies: number }) => {
   const demand = vacancies > 0 ? (requests / vacancies) * 100 : requests > 0 ? 200 : 0; // Cap demand visualization
-  const demandColor = demand > 90 ? 'bg-red-500' : demand > 60 ? 'bg-yellow-500' : 'bg-green-500';
+  const demandColor = demand > 100 ? 'bg-red-500' : demand > 80 ? 'bg-yellow-500' : 'bg-green-500';
   const demandRatio = vacancies > 0 ? (requests/vacancies).toFixed(1) : "N/A";
 
   return (
@@ -46,7 +46,7 @@ const DemandIndicator = ({ label, requests, vacancies }: { label: string; reques
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Progress value={demand} className="h-2 [&>div]:bg-red-500" indicatorClassName={demandColor} />
+                    <Progress value={demand} className="h-2" indicatorClassName={demandColor} />
                 </TooltipTrigger>
                 <TooltipContent>
                     <p>Relação candidato/vaga: {demandRatio}</p>
