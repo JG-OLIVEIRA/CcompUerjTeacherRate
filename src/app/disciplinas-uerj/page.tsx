@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, AlertTriangle, ListChecks } from 'lucide-react';
+import { Loader2, AlertTriangle, ListChecks, Wrench } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const formSchema = z.object({
@@ -48,6 +48,8 @@ export default function ScrapePage() {
     }
   };
 
+  const isFeatureDisabled = true;
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Card className="mb-8">
@@ -57,50 +59,63 @@ export default function ScrapePage() {
             Consultar Disciplinas e Turmas da UERJ
           </CardTitle>
           <CardDescription>
-            Insira seus dados de acesso ao Aluno Online para buscar as disciplinas e turmas disponíveis. Suas credenciais são usadas apenas para esta consulta e não são armazenadas.
+            {isFeatureDisabled 
+              ? "Esta funcionalidade está em manutenção. Agradecemos a sua compreensão." 
+              : "Insira seus dados de acesso ao Aluno Online para buscar as disciplinas e turmas disponíveis. Suas credenciais são usadas apenas para esta consulta e não são armazenadas."
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="matricula"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Matrícula</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Sua matrícula" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="senha"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Senha</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="Sua senha" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Buscando...
-                  </>
-                ) : (
-                  'Buscar Disciplinas'
-                )}
-              </Button>
-            </form>
-          </Form>
+          {isFeatureDisabled ? (
+            <div className="flex flex-col items-center justify-center gap-4 text-center text-muted-foreground border-2 border-dashed rounded-lg p-8">
+              <Wrench className="h-12 w-12 text-primary" />
+              <h3 className="text-xl font-bold">Funcionalidade em Manutenção</h3>
+              <p className="max-w-md">
+                A busca automática de disciplinas está temporariamente indisponível devido a atualizações técnicas. Estamos trabalhando para restaurar o serviço o mais breve possível.
+              </p>
+            </div>
+          ) : (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="matricula"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Matrícula</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Sua matrícula" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="senha"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Senha</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Sua senha" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Buscando...
+                    </>
+                  ) : (
+                    'Buscar Disciplinas'
+                  )}
+                </Button>
+              </form>
+            </Form>
+          )}
         </CardContent>
       </Card>
 
@@ -114,7 +129,7 @@ export default function ScrapePage() {
         </div>
       )}
 
-      {data && (
+      {data && !isFeatureDisabled && (
         <div>
             <h2 className="text-2xl font-bold mb-4">Resultados da Busca</h2>
             {data.disciplinas.length > 0 ? (

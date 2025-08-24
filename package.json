@@ -4,13 +4,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run next -- dev",
+    "dev": "next dev & node src/health-check.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "next": "next"
+    "next": "next",
+    "dev:next": "next dev",
+    "dev:health": "node src/health-check.js"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.2.0",
