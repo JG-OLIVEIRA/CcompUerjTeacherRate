@@ -20,7 +20,7 @@ export const whatsappLinks: Record<string, string[]> = {
     "https://chat.whatsapp.com/FnyUcLJsW7lJd4opzu9SSP",
     "https://chat.whatsapp.com/GYMpMAfLkUI5y5ENI1mb3j",
   ],
-  "Algoritmos e Est. de Dados II": [
+  "Algoritmos e Estruturas de Dados II": [
     "https://chat.whatsapp.com/B8EIms0uNR77R8Og1gpBGS",
     "https://chat.whatsapp.com/JvL5N0Z0y02C0R7Gk0Y7RV",
   ],
@@ -28,7 +28,7 @@ export const whatsappLinks: Record<string, string[]> = {
     "https://chat.whatsapp.com/JTbHnfeuLAb1A5qWKTgeb0",
     "https://chat.whatsapp.com/JLCZbIubic4KAcBRSVA4sq",
   ],
-  "Análise e Proj. de Sistemas": [
+  "Análise e Projeto de Sistemas": [
     "https://chat.whatsapp.com/DRGEwTfv7sX0elUpunfdt5",
   ],
   "Arquitetura de Computadores I": [
