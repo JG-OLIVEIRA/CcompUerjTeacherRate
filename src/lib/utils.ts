@@ -37,31 +37,15 @@ const dayMap: { [key: string]: string } = {
 export function formatSchedule(scheduleString: string | null | undefined): string {
   if (!scheduleString) return 'Horário a definir';
 
-  // Split by potential separators like comma or space
   const parts = scheduleString.split(/[, ]+/).filter(p => p.trim() !== '');
   const formattedSchedules: string[] = [];
 
   parts.forEach(part => {
-    // Regex to match a day code followed by time codes, e.g., "2M1M2"
     const dayMatch = part.match(/^([2-7])([MTN][1-6]+)$/);
     if (!dayMatch) {
-        // Fallback for parts that don't match the combined format
-        const dayCodeMatch = part.match(/^[2-7]/);
-        if (dayCodeMatch) {
-            const dayCode = dayCodeMatch[0];
-            const dayName = dayMap[dayCode];
-            const timeCodes = part.substring(1).match(/[MTN][1-6]/g);
-            if (timeCodes && timeCodes.length > 0) {
-                 const firstSlot = timeSlotMap[timeCodes[0]];
-                const lastSlot = timeSlotMap[timeCodes[timeCodes.length - 1]];
-                 if (firstSlot && lastSlot) {
-                    const startTime = firstSlot.split('-')[0];
-                    const endTime = lastSlot.split('-')[1];
-                    formattedSchedules.push(`${dayName}, ${startTime} - ${endTime}`);
-                }
-            }
-        }
-        return;
+      // If the part doesn't match the expected format, add it as is (fallback)
+      if (part) formattedSchedules.push(part);
+      return;
     };
 
     const [, dayCode, timeBlock] = dayMatch;
@@ -76,9 +60,16 @@ export function formatSchedule(scheduleString: string | null | undefined): strin
     if (firstSlot && lastSlot) {
       const startTime = firstSlot.split('-')[0];
       const endTime = lastSlot.split('-')[1];
-      formattedSchedules.push(`${dayName}, ${startTime} - ${endTime}`);
+      const existingSchedule = formattedSchedules.find(s => s.startsWith(dayName));
+      
+      if (existingSchedule) {
+        // This case is unlikely with the current data format but good to have
+        formattedSchedules[formattedSchedules.indexOf(existingSchedule)] += ` e ${startTime} - ${endTime}`;
+      } else {
+        formattedSchedules.push(`${dayName}, ${startTime} - ${endTime}`);
+      }
     }
   });
 
-  return formattedSchedules.length > 0 ? formattedSchedules.join(' | ') : scheduleString;
+  return formattedSchedules.length > 0 ? formattedSchedules.join(' | ') : 'Horário a definir';
 }
