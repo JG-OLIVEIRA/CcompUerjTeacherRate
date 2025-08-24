@@ -15,7 +15,7 @@ export const whatsappLinks: Record<string, string[]> = {
     "https://chat.whatsapp.com/LtfqDhocVAX3XfM8VY7ptp",
     "https://chat.whatsapp.com/HRKfnqCp8iWLBbA7S0n3Hz",
   ],
-  "Algoritmos e Est. de Dados I": [
+  "Algoritmos e Estruturas de Dados I": [
     "https://chat.whatsapp.com/FNzwRjbK4Gs09FMsM1TMRO",
     "https://chat.whatsapp.com/FnyUcLJsW7lJd4opzu9SSP",
     "https://chat.whatsapp.com/GYMpMAfLkUI5y5ENI1mb3j",

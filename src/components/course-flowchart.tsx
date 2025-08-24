@@ -8,7 +8,7 @@ import { Separator } from './ui/separator';
 
 const flowchartData = [
     { semester: 1, subjects: ["Geometria Analítica", "Cálculo I", "Álgebra", "Matemática Discreta", "Fundamentos da Computação"] },
-    { semester: 2, subjects: ["Álgebra Linear", "Cálculo II", "Cálculo das Probabilidades", "Algoritmos e Est. de Dados I", "Linguagem de Programação I", "Física I"] },
+    { semester: 2, subjects: ["Álgebra Linear", "Cálculo II", "Cálculo das Probabilidades", "Algoritmos e Estruturas de Dados I", "Linguagem de Programação I", "Física I"] },
     { semester: 3, subjects: ["Português Instrumental", "Cálculo III", "Algoritmos e Est. de Dados II", "Elementos de Lógica", "Linguagem de Programação II", "Teoria da Computação"] },
     { semester: 4, subjects: ["Cálculo Numérico", "Cálculo IV", "Algoritmos em Grafos", "Engenharia de Software", "Arquitetura de Computadores I", "Física II"] },
     { semester: 5, subjects: ["Estruturas de Linguagens", "Banco de Dados I", "Otimização em Grafos", "Análise e Proj. de Sistemas", "Sistemas Operacionais I", "Arquitetura de Computadores II", "Eletiva Básica"] },
@@ -18,7 +18,7 @@ const flowchartData = [
 ];
 
 const totalSubjects = flowchartData.reduce((sum, semester) => sum + semester.subjects.length, 0);
-const AVG_SUBJECTS_PER_SEMESTER = 6;
+const AVG_SUBJECTS_PER_SEMERTER = 6;
 
 
 export const prerequisites: { [subject: string]: string[] } = {
@@ -26,12 +26,12 @@ export const prerequisites: { [subject: string]: string[] } = {
     "Álgebra Linear": ["Geometria Analítica", "Álgebra"],
     "Cálculo II": ["Cálculo I"],
     "Cálculo das Probabilidades": ["Álgebra", "Cálculo I"],
-    "Algoritmos e Est. de Dados I": ["Matemática Discreta", "Fundamentos da Computação"],
+    "Algoritmos e Estruturas de Dados I": ["Matemática Discreta", "Fundamentos da Computação"],
     "Linguagem de Programação I": ["Fundamentos da Computação"],
     // 3rd Period
     "Cálculo III": ["Cálculo II"],
-    "Algoritmos e Est. de Dados II": ["Algoritmos e Est. de Dados I"],
-    "Elementos de Lógica": ["Algoritmos e Est. de Dados I"],
+    "Algoritmos e Est. de Dados II": ["Algoritmos e Estruturas de Dados I"],
+    "Elementos de Lógica": ["Algoritmos e Estruturas de Dados I"],
     "Linguagem de Programação II": ["Linguagem de Programação I"],
     "Teoria da Computação": ["Linguagem de Programação I"],
     // 4th Period
@@ -115,7 +115,7 @@ export default function CourseFlowchart({ onCompletedChange }: CourseFlowchartPr
   }
   
   const remainingSubjects = totalSubjects - completedSubjects.size;
-  const remainingSemesters = Math.ceil(remainingSubjects / AVG_SUBJECTS_PER_SEMESTER);
+  const remainingSemesters = Math.ceil(remainingSubjects / AVG_SUBJECTS_PER_SEMERTER);
 
   return (
     <Card className="w-full mb-6 bg-secondary/50 border-primary/20">
