@@ -14,7 +14,7 @@ import StarRating from './star-rating';
 
 interface ClassInfoCardProps {
   classInfo: ClassInfo;
-  teacher?: Teacher;
+  teacher?: Teacher | Teacher[]; // Can be a single teacher or an array of teachers
 }
 
 const StatItem = ({ icon: Icon, label, value, tooltip }: { icon: React.ElementType, label: string, value: string | number, tooltip?: string }) => (
@@ -63,8 +63,11 @@ export default function ClassInfoCard({ classInfo, teacher }: ClassInfoCardProps
     const totalOccupied = classInfo.occupied_uerj + classInfo.occupied_vestibular;
     const occupancyRate = totalVacancies > 0 ? (totalOccupied / totalVacancies) * 100 : 0;
     
+    // The capitalizeTeacherName function now handles splitting names.
     const teacherNameToDisplay = capitalizeTeacherName(cleanTeacherName(classInfo.teacher)) || 'Docente a definir';
     const formattedTime = formatSchedule(classInfo.times);
+    
+    const teachersArray = Array.isArray(teacher) ? teacher : (teacher ? [teacher] : []);
 
 
     return (
@@ -89,22 +92,29 @@ export default function ClassInfoCard({ classInfo, teacher }: ClassInfoCardProps
                     )}
                 </div>
                 <CardDescription className="pt-1">
-                    <div className={cn("flex items-center gap-2 group", teacher && "cursor-pointer")}>
+                    <div className="flex items-center gap-2 group">
                         <Users className="h-4 w-4" /> 
-                        {teacher ? (
-                             <Link href={`/teachers/${teacher.id}`} className="flex items-center gap-2 group-hover:underline text-foreground font-semibold">
-                                <span>{teacherNameToDisplay}</span>
-                                <ChevronRightCircle className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity"/>
-                            </Link>
+                        {teachersArray.length > 0 ? (
+                             <div className="flex flex-wrap items-center gap-x-1 text-foreground font-semibold">
+                                {teachersArray.map((t, index) => (
+                                    <React.Fragment key={t.id}>
+                                        <Link href={`/teachers/${t.id}`} className="hover:underline flex items-center gap-1">
+                                            <span>{capitalizeTeacherName(t.name)}</span>
+                                            <ChevronRightCircle className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity"/>
+                                        </Link>
+                                        {index < teachersArray.length - 1 && <span> e </span>}
+                                    </React.Fragment>
+                                ))}
+                            </div>
                         ) : (
                              <span>{teacherNameToDisplay}</span>
                         )}
                     </div>
-                     {teacher && teacher.averageRating !== undefined && teacher.reviews.length > 0 && (
+                     {teachersArray.length === 1 && teachersArray[0].averageRating !== undefined && teachersArray[0].reviews.length > 0 && (
                         <div className="flex items-center gap-2 mt-2">
-                            <StarRating rating={teacher.averageRating || 0} />
+                            <StarRating rating={teachersArray[0].averageRating || 0} />
                             <span className="text-sm font-bold text-muted-foreground">
-                                {(teacher.averageRating || 0).toFixed(1)}
+                                {(teachersArray[0].averageRating || 0).toFixed(1)}
                             </span>
                         </div>
                     )}

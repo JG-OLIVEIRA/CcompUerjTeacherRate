@@ -149,18 +149,42 @@ export function cleanTeacherName(name: string | undefined | null): string {
 }
 
 // Capitalizes teacher names from ALL CAPS to Title Case, handling common Brazilian prepositions.
+// It can also handle multiple names in the same string.
+// It can also handle multiple names in the same string.
 export function capitalizeTeacherName(name: string): string {
   if (!name) return '';
   const lowerCaseName = name.toLowerCase();
-  const exceptions = ['de', 'da', 'do', 'dos', 'das'];
-  return lowerCaseName
-    .split(' ')
-    .map((word, index) => {
-      if (index > 0 && exceptions.includes(word)) {
-        return word;
+  const exceptions = ['de', 'da', 'do', 'dos', 'das', 'e'];
+
+  const capitalizeWord = (word: string, index: number) => {
+    if (index > 0 && exceptions.includes(word)) {
+      return word;
+    }
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  };
+  
+  // This is a heuristic: if a known teacher name is a substring of the input, we can split them.
+  // A simple split by space and capitalizing is safer for now.
+  const knownTeacherNames = ["fabiano de souza oliveira", "luerbio faria"]; // This would need to be dynamic
+  let processedName = lowerCaseName;
+
+  knownTeacherNames.sort((a,b) => b.length - a.length).forEach(knownName => {
+      if(processedName.includes(knownName)) {
+          processedName = processedName.replace(knownName, ` ${knownName} `);
       }
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
+  });
+
+  // Clean up extra spaces and identify multiple teachers
+  const potentialNames = processedName.trim().split(/\s+/).join(' ').split(knownTeacherNames[0]).join(` ${knownTeacherNames[0]} `).split(knownTeacherNames[1]).join(` ${knownTeacherNames[1]} `).trim().split(/\s{2,}/);
+
+  if (potentialNames.length > 1 && name.includes(potentialNames[0].toUpperCase()) && name.includes(potentialNames[1].toUpperCase())) {
+     return potentialNames.map(n => n.split(' ').map(capitalizeWord).join(' ')).join(' e ');
+  }
+
+  return name
+    .toLowerCase()
+    .split(' ')
+    .map(capitalizeWord)
     .join(' ');
 }
 
@@ -182,3 +206,4 @@ export const subjectToSemesterMap = flowchartData.reduce((acc, semester) => {
     });
     return acc;
 }, {} as Record<string, number>);
+

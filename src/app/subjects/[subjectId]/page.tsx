@@ -19,6 +19,7 @@ import type { Teacher, Review } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import ClassInfoCard from '@/components/class-info-card';
 import type { IconName } from '@/components/header';
+import { cleanTeacherName } from '@/lib/utils';
 
 
 interface SubjectProfilePageProps {
@@ -37,28 +38,48 @@ const calculateAverageRating = (reviews: Review[]): number => {
 };
 
 
-// Helper function to find a matching teacher with fuzzy logic
-const findMatchingTeacher = (className: string, allTeachers: Teacher[]): Teacher | undefined => {
-    if (!className) return undefined;
-    const classTeacherNameLower = className.toLowerCase();
-
-    // 1. Exact match (case-insensitive)
-    const exactMatch = allTeachers.find(t => t.name.toLowerCase() === classTeacherNameLower);
-    if (exactMatch) return exactMatch;
-
-    // 2. Fuzzy match: Check if all parts of a teacher's name exist in the class teacher's name
-    const classTeacherParts = classTeacherNameLower.split(' ');
-    const potentialMatches = allTeachers.filter(t => {
-        const teacherParts = t.name.toLowerCase().split(' ');
-        return teacherParts.every(part => classTeacherParts.includes(part));
-    });
-
-    // If multiple potential matches, return the one with the most name parts (most specific)
-    if (potentialMatches.length > 1) {
-        return potentialMatches.sort((a, b) => b.name.split(' ').length - a.name.split(' ').length)[0];
-    }
+// Helper function to find matching teachers for a class.
+// It can now return an array of teachers if multiple are found.
+const findMatchingTeachers = (className: string, allTeachers: Teacher[]): Teacher[] => {
+    if (!className) return [];
     
-    return potentialMatches[0];
+    const cleanedClassName = cleanTeacherName(className).toLowerCase();
+    const potentialTeacherNames = cleanedClassName.split(' e '); // Assuming ' e ' is a separator for now
+
+    const foundTeachers: Teacher[] = [];
+    const allTeachersLowerMap = new Map(allTeachers.map(t => [t.name.toLowerCase(), t]));
+
+    // Attempt to find teachers based on the combined string first, and split parts
+    for (const namePart of potentialTeacherNames) {
+        if (allTeachersLowerMap.has(namePart)) {
+            foundTeachers.push(allTeachersLowerMap.get(namePart)!);
+        } else {
+             // If not a direct match, check if the class name contains a teacher's full name
+            for (const teacher of allTeachers) {
+                if (cleanedClassName.includes(teacher.name.toLowerCase())) {
+                    if (!foundTeachers.some(ft => ft.id === teacher.id)) {
+                        foundTeachers.push(teacher);
+                    }
+                }
+            }
+        }
+    }
+
+    // A simple heuristic to avoid adding sub-names (e.g., adding "LUERBIO FARIA" if "FABIANO... LUERBIO FARIA" is already found)
+    if (foundTeachers.length > 1) {
+        const sortedByLength = [...foundTeachers].sort((a, b) => b.name.length - a.name.length);
+        const uniqueTeachers = new Set<Teacher>();
+        let currentNames = "";
+        for (const teacher of sortedByLength) {
+            if (!currentNames.includes(teacher.name.toLowerCase())) {
+                uniqueTeachers.add(teacher);
+                currentNames += teacher.name.toLowerCase();
+            }
+        }
+        return Array.from(uniqueTeachers);
+    }
+
+    return foundTeachers;
 };
 
 
@@ -181,13 +202,12 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {subjectData.classes.map(classInfo => {
-                                // Use the fuzzy matching logic here
-                                const teacher = findMatchingTeacher(classInfo.teacher, allTeachers);
+                                const teachers = findMatchingTeachers(classInfo.teacher, allTeachers);
                                 return (
                                     <ClassInfoCard 
                                         key={classInfo.id} 
                                         classInfo={classInfo}
-                                        teacher={teacher}
+                                        teacher={teachers.length > 1 ? teachers : teachers[0]}
                                     />
                                 );
                             })}
