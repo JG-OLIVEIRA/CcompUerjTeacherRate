@@ -9,7 +9,7 @@ import { Progress } from './ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Separator } from './ui/separator';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import { cn, formatSchedule } from '@/lib/utils';
 import StarRating from './star-rating';
 
 interface ClassInfoCardProps {
@@ -73,6 +73,8 @@ export default function ClassInfoCard({ classInfo, evaluatedTeacher }: ClassInfo
     }
 
     const teacherNameToDisplay = cleanTeacherName(classInfo.teacher);
+    const formattedTime = formatSchedule(classInfo.times);
+
 
     return (
         <Card className="flex flex-col bg-card/50">
@@ -120,7 +122,7 @@ export default function ClassInfoCard({ classInfo, evaluatedTeacher }: ClassInfo
             <CardContent className="space-y-3 flex-grow">
                  <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-primary" /> 
-                    <span className="font-semibold">{classInfo.times}</span>
+                    <span className="font-semibold">{formattedTime}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-primary" /> 
