@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import MainLayout from '@/components/main-layout';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, MessageSquare, BookOpen, User, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, MessageSquare, BookOpen, User, ShieldAlert, PlusCircle } from 'lucide-react';
 import StarRating from '@/components/star-rating';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -93,6 +93,12 @@ export default async function TeacherProfilePage({ params }: TeacherProfilePageP
                             allTeachers={[teacher]}
                             onSubmit={handleAddTeacherOrReview}
                             initialTeacherName={teacher.name}
+                            triggerElement={
+                                <Button>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Adicionar Avaliação
+                                </Button>
+                            }
                         />
                     </div>
                 </CardHeader>
@@ -164,5 +170,3 @@ export default async function TeacherProfilePage({ params }: TeacherProfilePageP
     </MainLayout>
   );
 }
-
-    
