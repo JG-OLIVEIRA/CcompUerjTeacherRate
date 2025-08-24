@@ -580,7 +580,17 @@ export async function getTeacherById(teacherId: number): Promise<Teacher | null>
             WHERE r.teacher_id = $1 AND r.reported = false
             ORDER BY r.created_at DESC;
         `;
-        const reviewsResult = await client.query(reviewsQuery, [teacherId]);
+        
+        const classesQuery = `
+            SELECT discipline_name, number 
+            FROM classes 
+            WHERE teacher ILIKE $1;
+        `;
+
+        const [reviewsResult, classesResult] = await Promise.all([
+            client.query(reviewsQuery, [teacherId]),
+            client.query(classesQuery, [`%${teacherData.name}%`])
+        ]);
         
         const allSubjects = new Set<string>();
         const reviews: Review[] = [];
@@ -623,12 +633,18 @@ export async function getTeacherById(teacherId: number): Promise<Teacher | null>
             }
         });
         
+        const currentClasses = classesResult.rows.map(row => ({
+            subjectName: row.discipline_name.replace(/^[A-Z]{3}\d{2}-\d{5}\s/, '').trim(),
+            classNumber: row.number,
+        }));
+
         const teacher: Teacher = {
             id: teacherData.id,
             name: teacherData.name,
             reviews: reviews,
             subjects: allSubjects,
             averageRating: calculateAverageRating(reviews),
+            currentClasses: currentClasses,
         };
         
         return teacher;

@@ -25,6 +25,10 @@ export interface Teacher {
   subject?: string; // Context-specific subject
   subjects?: Set<string>; // All subjects taught
   averageRating?: number;
+  currentClasses?: {
+    subjectName: string;
+    classNumber: string;
+  }[];
 }
 
 export interface ClassInfo {

@@ -1,10 +1,11 @@
 
+
 import { getTeacherById } from '@/lib/data-service';
 import { notFound } from 'next/navigation';
 import MainLayout from '@/components/main-layout';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, MessageSquare, BookOpen, User, ShieldAlert, PlusCircle } from 'lucide-react';
+import { ArrowLeft, MessageSquare, BookOpen, User, ShieldAlert, PlusCircle, CalendarCheck } from 'lucide-react';
 import StarRating from '@/components/star-rating';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -103,19 +104,36 @@ export default async function TeacherProfilePage({ params }: TeacherProfilePageP
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="mt-4">
-                        <h3 className="text-md font-semibold flex items-center gap-2 mb-2">
-                            <BookOpen className="h-5 w-5 text-primary"/>
-                            Matérias Lecionadas
-                        </h3>
-                        {teacher.subjects && teacher.subjects.size > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                                {Array.from(teacher.subjects).sort().map(subject => (
-                                    <Badge key={subject} variant="secondary">{subject}</Badge>
-                                ))}
+                    <div className="space-y-4">
+                        <div>
+                            <h3 className="text-md font-semibold flex items-center gap-2 mb-2">
+                                <BookOpen className="h-5 w-5 text-primary"/>
+                                Matérias Avaliadas
+                            </h3>
+                            {teacher.subjects && teacher.subjects.size > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {Array.from(teacher.subjects).sort().map(subject => (
+                                        <Badge key={subject} variant="secondary">{subject}</Badge>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">Nenhuma matéria registrada para este professor.</p>
+                            )}
+                        </div>
+                        {teacher.currentClasses && teacher.currentClasses.length > 0 && (
+                            <div>
+                                <h3 className="text-md font-semibold flex items-center gap-2 mb-2">
+                                    <CalendarCheck className="h-5 w-5 text-primary"/>
+                                    Turmas Atuais Neste Semestre
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {teacher.currentClasses.map((c, index) => (
+                                        <Badge key={index} variant="outline">
+                                            {c.subjectName} (Turma {c.classNumber})
+                                        </Badge>
+                                    ))}
+                                </div>
                             </div>
-                        ) : (
-                            <p className="text-sm text-muted-foreground">Nenhuma matéria registrada para este professor.</p>
                         )}
                     </div>
                 </CardContent>
