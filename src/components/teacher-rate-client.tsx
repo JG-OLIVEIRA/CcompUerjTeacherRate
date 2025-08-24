@@ -9,6 +9,64 @@ import { Input } from './ui/input';
 import { Search, BookOpen } from 'lucide-react';
 import SubjectSection from './subject-section';
 
+const subjectToSemesterMap: { [key: string]: number } = {
+    // 1º Período
+    "Geometria Analítica": 1,
+    "Cálculo I": 1,
+    "Álgebra": 1,
+    "Matemática Discreta": 1,
+    "Fundamentos da Computação": 1,
+    // 2º Período
+    "Álgebra Linear": 2,
+    "Cálculo II": 2,
+    "Cálculo das Probabilidades": 2,
+    "Algoritmos e Est. de Dados I": 2,
+    "Linguagem de Programação I": 2,
+    "Física I": 2,
+    // 3º Período
+    "Português Instrumental": 3,
+    "Cálculo III": 3,
+    "Algoritmos e Est. de Dados II": 3,
+    "Elementos de Lógica": 3,
+    "Linguagem de Programação II": 3,
+    "Teoria da Computação": 3,
+    // 4º Período
+    "Cálculo Numérico": 4,
+    "Cálculo IV": 4,
+    "Algoritmos em Grafos": 4,
+    "Engenharia de Software": 4,
+    "Arquitetura de Computadores I": 4,
+    "Física II": 4,
+    // 5º Período
+    "Estruturas de Linguagens": 5,
+    "Banco de Dados I": 5,
+    "Otimização em Grafos": 5,
+    "Análise e Proj. de Sistemas": 5,
+    "Sistemas Operacionais I": 5,
+    "Arquitetura de Computadores II": 5,
+    "Eletiva Básica": 5,
+    // 6º Período
+    "Otimização Combinatória": 6,
+    "Banco de Dados II": 6,
+    "Interfaces Humano-Comp.": 6,
+    "Eletiva I": 6,
+    "Sistemas Operacionais II": 6,
+    "Compiladores": 6,
+    // 7º Período
+    "Computação Gráfica": 7,
+    "Inteligência Artificial": 7,
+    "Ética Comp. e Sociedade": 7,
+    "Metod. Cient. no Projeto Final": 7,
+    "Redes de Computadores I": 7,
+    "Arq. Avançadas de Computadores": 7,
+    // 8º Período
+    "Eletiva II": 8,
+    "Eletiva III": 8,
+    "Projeto Final": 8,
+    "Sistemas Distribuídos": 8,
+    "Eletiva IV": 8,
+  };
+
 
 interface TeacherRateClientProps {
   initialSubjectsData: Subject[];
@@ -19,15 +77,23 @@ export default function TeacherRateClient({ initialSubjectsData, allTeachers }: 
   const [completedSubjects, setCompletedSubjects] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const subjectsWithPeriods = useMemo(() => {
+    return initialSubjectsData.map(subject => ({
+      ...subject,
+      period: subjectToSemesterMap[subject.name] || subject.period,
+    }));
+  }, [initialSubjectsData]);
+
+
   const filteredSubjects = useMemo(() => {
     const lowercasedQuery = searchQuery.toLowerCase();
     if (!lowercasedQuery) {
-        return initialSubjectsData;
+        return subjectsWithPeriods;
     }
-    return initialSubjectsData.filter(subject => 
+    return subjectsWithPeriods.filter(subject => 
         subject.name.toLowerCase().includes(lowercasedQuery)
     );
-  }, [initialSubjectsData, searchQuery]);
+  }, [subjectsWithPeriods, searchQuery]);
 
   const groupedSubjects = useMemo(() => {
     const groups: { [key: number]: Subject[] } = {};

@@ -42,24 +42,9 @@ export async function getSubjects(): Promise<Subject[]> {
                     name: row.name,
                     iconName: assignIconName(row.name),
                     teachers: [],
-                    period: 0, // Will be updated
                 },
             ])
         );
-
-        // Fetch period for each subject from the classes table
-        const classesResult = await client.query('SELECT DISTINCT discipline_name, period FROM classes WHERE period IS NOT NULL;');
-        const subjectNameToPeriodMap: Map<string, number> = new Map();
-        for (const row of classesResult.rows) {
-            subjectNameToPeriodMap.set(row.discipline_name.trim().toLowerCase(), row.period);
-        }
-
-        subjectsMap.forEach(subject => {
-            const period = subjectNameToPeriodMap.get(subject.name.trim().toLowerCase());
-            if (period) {
-                subject.period = period;
-            }
-        });
 
         const dataQuery = `
             SELECT 
@@ -672,12 +657,12 @@ export async function getSubjectById(subjectId: number): Promise<{
         `;
         
         const classesQuery = `
-            SELECT * FROM classes WHERE discipline_name LIKE '%' || $1 || '%' ORDER BY number;
+            SELECT * FROM classes WHERE discipline_name ILIKE $1 ORDER BY number;
         `;
         
         const [reviewsResult, classesResult] = await Promise.all([
             client.query(reviewsQuery, [subjectId]),
-            client.query(classesQuery, [subjectData.name])
+            client.query(classesQuery, [`%${subjectData.name}%`])
         ]);
 
         return {

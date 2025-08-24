@@ -144,6 +144,5 @@ export function formatSchedule(scheduleString: string | null | undefined): strin
 
 export function cleanTeacherName(name: string | undefined | null): string {
     if (!name) return '';
-    // Remove "Vagas para..." e espaços em branco extras
-    return name.replace(/Vagas para.*/, '').trim();
+    return name.trim();
 }
