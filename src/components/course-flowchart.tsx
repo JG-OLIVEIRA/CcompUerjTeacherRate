@@ -123,13 +123,10 @@ export default function CourseFlowchart({ onCompletedChange }: CourseFlowchartPr
     
     const now = new Date();
     let year = now.getFullYear();
-    // UERJ semester 1 is roughly Jan-Jul, semester 2 is Aug-Dec
+    // UERJ semester 1 is Jan-Jul (months 0-6), semester 2 is Aug-Dec (months 7-11)
     let semester = now.getMonth() < 7 ? 1 : 2;
 
-    // We subtract 1 because the current semester is one of the remaining semesters.
-    let semestersToAdvance = remainingSemesters - 1;
-
-    for (let i = 0; i < semestersToAdvance; i++) {
+    for (let i = 0; i < remainingSemesters; i++) {
         if (semester === 1) {
             semester = 2;
         } else {
