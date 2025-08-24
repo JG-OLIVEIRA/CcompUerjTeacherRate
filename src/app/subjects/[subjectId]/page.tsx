@@ -36,6 +36,31 @@ const calculateAverageRating = (reviews: Review[]): number => {
 };
 
 
+// Helper function to find a matching teacher with fuzzy logic
+const findMatchingTeacher = (className: string, allTeachers: Teacher[]): Teacher | undefined => {
+    if (!className) return undefined;
+    const classTeacherNameLower = className.toLowerCase();
+
+    // 1. Exact match (case-insensitive)
+    const exactMatch = allTeachers.find(t => t.name.toLowerCase() === classTeacherNameLower);
+    if (exactMatch) return exactMatch;
+
+    // 2. Fuzzy match: Check if all parts of a teacher's name exist in the class teacher's name
+    const classTeacherParts = classTeacherNameLower.split(' ');
+    const potentialMatches = allTeachers.filter(t => {
+        const teacherParts = t.name.toLowerCase().split(' ');
+        return teacherParts.every(part => classTeacherParts.includes(part));
+    });
+
+    // If multiple potential matches, return the one with the most name parts (most specific)
+    if (potentialMatches.length > 1) {
+        return potentialMatches.sort((a, b) => b.name.split(' ').length - a.name.split(' ').length)[0];
+    }
+    
+    return potentialMatches[0];
+};
+
+
 // Componente de página com a tipagem corrigida
 export default async function SubjectProfilePage({ params }: SubjectProfilePageProps) {
   const subjectId = parseInt(params.subjectId, 10);
@@ -84,8 +109,6 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
 
   const topTeacherId = evaluatedTeachersForSubject.length > 0 ? evaluatedTeachersForSubject[0].id : null;
   
-  const allTeachersMap = new Map(allTeachers.map(t => [t.name.toLowerCase(), t]));
-
 
   const headerContent = (
     <div className="flex flex-col items-center justify-center text-center">
@@ -157,8 +180,8 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {subjectData.classes.map(classInfo => {
-                                const teacherName = classInfo.teacher.toLowerCase();
-                                const teacher = allTeachersMap.get(teacherName);
+                                // Use the fuzzy matching logic here
+                                const teacher = findMatchingTeacher(classInfo.teacher, allTeachers);
                                 return (
                                     <ClassInfoCard 
                                         key={classInfo.id} 
