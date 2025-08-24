@@ -8,6 +8,7 @@ import RecommendationSection from './recommendation-section';
 import { Input } from './ui/input';
 import { Search, BookOpen } from 'lucide-react';
 import SubjectSection from './subject-section';
+import { subjectToSemesterMap } from '@/lib/utils';
 
 
 interface TeacherRateClientProps {
@@ -28,7 +29,11 @@ export default function TeacherRateClient({ initialSubjectsData, allTeachers }: 
 
     const grouped: Record<string, Subject[]> = {};
     for (const subject of filtered) {
-      const periodKey = subject.period ? `${subject.period}º Período` : 'Outras';
+      // Normalize both names for comparison
+      const subjectNameLower = subject.name.toLowerCase();
+      const periodNumber = subjectToSemesterMap[subjectNameLower as keyof typeof subjectToSemesterMap];
+      const periodKey = periodNumber ? `${periodNumber}º Período` : 'Outras';
+      
       if (!grouped[periodKey]) {
         grouped[periodKey] = [];
       }
@@ -37,12 +42,11 @@ export default function TeacherRateClient({ initialSubjectsData, allTeachers }: 
     
     // Sort groups by period number
     return Object.entries(grouped).sort(([keyA], [keyB]) => {
+      if (keyA === 'Outras') return 1;
+      if (keyB === 'Outras') return -1;
       const numA = parseInt(keyA, 10);
       const numB = parseInt(keyB, 10);
-      if (!isNaN(numA) && !isNaN(numB)) {
-        return numA - numB;
-      }
-      return keyA.localeCompare(keyB); // Fallback for "Outras"
+      return numA - numB;
     });
 
   }, [initialSubjectsData, searchQuery]);

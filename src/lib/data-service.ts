@@ -34,63 +34,45 @@ export async function getSubjects(): Promise<Subject[]> {
     const client = await pool.connect();
     try {
         const subjectsMap: Map<number, Subject> = new Map();
+        const teachersMap: Map<string, Teacher> = new Map(); // Key: "teacherId-subjectId"
 
         // 1. Get all distinct disciplines and their classes from the `classes` table
         const classesQuery = 'SELECT * FROM classes ORDER BY discipline_name;';
         const classesResult = await client.query(classesQuery);
         
         const classesBySubjectId: Map<number, ClassInfo[]> = new Map();
-        const subjectIdToDetailsMap: Map<number, { name: string, period: number }> = new Map();
-
-        // Use a separate query to get or create subject IDs to ensure consistency
-        const subjectNamesFromClasses = [...new Set(classesResult.rows.map(c => c.discipline_name.replace(/^.*?\s/, '').trim()))];
         
-        for (const name of subjectNamesFromClasses) {
-            let subjectRes = await client.query('SELECT id FROM subjects WHERE name ILIKE $1', [name]);
+        // 2. Process classes to populate subjectsMap
+        for (const classRow of classesResult.rows) {
+            const cleanName = classRow.discipline_name.replace(/^.*?\s/, '').trim();
+            
+            // Find or create subject
+            let subjectRes = await client.query('SELECT id FROM subjects WHERE name ILIKE $1', [cleanName]);
             let subjectId;
             if (subjectRes.rowCount === 0) {
-                let newSubjectRes = await client.query('INSERT INTO subjects (name) VALUES ($1) RETURNING id', [name]);
+                let newSubjectRes = await client.query('INSERT INTO subjects (name) VALUES ($1) RETURNING id', [cleanName]);
                 subjectId = newSubjectRes.rows[0].id;
             } else {
                 subjectId = subjectRes.rows[0].id;
             }
 
-            // Now, find a class with this subject name to extract the period
-            const classForPeriod = classesResult.rows.find(c => c.discipline_name.includes(name));
-            if (classForPeriod) {
-                const code = classForPeriod.discipline_name.split(' ')[0]; // "IME01-04827"
-                const period = parseInt(code.substring(4, 5), 10); // Extracts '1' from 'IME01'
-                if (!isNaN(period)) {
-                    subjectIdToDetailsMap.set(subjectId, { name, period });
-                }
+            if (!subjectsMap.has(subjectId)) {
+                 subjectsMap.set(subjectId, {
+                    id: subjectId,
+                    name: cleanName,
+                    iconName: assignIconName(cleanName),
+                    teachers: [],
+                    classes: [],
+                });
             }
-        }
-        
-        // Populate the subjectsMap from the verified subjects
-        for (const [id, details] of subjectIdToDetailsMap.entries()) {
-            subjectsMap.set(id, {
-                id: id,
-                name: details.name,
-                period: details.period,
-                iconName: assignIconName(details.name),
-                teachers: [],
-                classes: [],
-            });
-        }
-        
-        // Group classes by subject ID
-        for (const classRow of classesResult.rows) {
-            const cleanName = classRow.discipline_name.replace(/^.*?\s/, '').trim();
-            const subjectDetailsEntry = [...subjectIdToDetailsMap.entries()].find(([_, details]) => details.name === cleanName);
-            if (subjectDetailsEntry) {
-                const subjectId = subjectDetailsEntry[0];
-                if (!classesBySubjectId.has(subjectId)) {
-                    classesBySubjectId.set(subjectId, []);
-                }
-                classesBySubjectId.get(subjectId)!.push(classRow);
+
+            // Group classes by subject ID
+            if (!classesBySubjectId.has(subjectId)) {
+                classesBySubjectId.set(subjectId, []);
             }
+            classesBySubjectId.get(subjectId)!.push(classRow);
         }
-        
+
         // Assign classes to subjects
         for (const [subjectId, classes] of classesBySubjectId.entries()) {
             const subject = subjectsMap.get(subjectId);
@@ -99,8 +81,7 @@ export async function getSubjects(): Promise<Subject[]> {
             }
         }
         
-
-        // 2. Get all reviews and join with teachers
+        // 3. Get all reviews and join with teachers
         const reviewsQuery = `
             SELECT 
                 r.subject_id,
@@ -119,12 +100,10 @@ export async function getSubjects(): Promise<Subject[]> {
         `;
         const reviewsResult = await client.query(reviewsQuery);
 
-        // 3. Process reviews and associate teachers with subjects
-        const teachersMap: Map<string, Teacher> = new Map(); // Key: "teacherId-subjectId"
-
+        // 4. Process reviews and associate teachers with subjects
         for (const row of reviewsResult.rows) {
             const subject = subjectsMap.get(row.subject_id);
-            if (!subject) continue; // Skip reviews for subjects not in `classes`
+            if (!subject) continue; // Skip reviews for subjects not in our current list
 
             const teacherKey = `${row.teacher_id}-${row.subject_id}`;
             let teacher = teachersMap.get(teacherKey);
@@ -138,7 +117,10 @@ export async function getSubjects(): Promise<Subject[]> {
                     averageRating: 0,
                 };
                 teachersMap.set(teacherKey, teacher);
-                subject.teachers.push(teacher);
+                // Avoid duplicating teacher object if already pushed
+                if (!subject.teachers.some(t => t.id === teacher!.id)) {
+                    subject.teachers.push(teacher);
+                }
             }
             
             if (row.review_id && !teacher.reviews.some(rev => rev.id === row.review_id)) {
@@ -154,7 +136,7 @@ export async function getSubjects(): Promise<Subject[]> {
             }
         }
 
-        // 4. Calculate average ratings
+        // 5. Calculate average ratings
         subjectsMap.forEach(subject => {
             subject.teachers.forEach(teacher => {
                 teacher.averageRating = calculateAverageRating(teacher.reviews);
@@ -162,7 +144,7 @@ export async function getSubjects(): Promise<Subject[]> {
             subject.teachers.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0));
         });
 
-        return Array.from(subjectsMap.values());
+        return Array.from(subjectsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 
     } catch (error) {
         console.error("Erro ao buscar dados do PostgreSQL:", error);
