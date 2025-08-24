@@ -3,15 +3,25 @@
 
 import type { Review } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from './ui/card';
-import { Quote, User, Book } from 'lucide-react';
+import { Quote, User, Book, MessageSquare } from 'lucide-react';
 import StarRating from './star-rating';
 import Link from 'next/link';
 import { Badge } from './ui/badge';
-
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface RecentReviewsProps {
   initialReviews: Review[];
 }
+
+const getInitials = (name: string) => {
+    if (!name) return '??';
+    const nameParts = name.split(' ');
+    if (nameParts.length > 1) {
+        return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+}
+
 
 export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
   
@@ -21,7 +31,6 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
         const date = new Date(dateString);
         // Using a consistent format that works on both server and client
         return date.toLocaleDateString('pt-BR', {
-            year: 'numeric',
             month: 'short',
             day: 'numeric'
         });
@@ -33,47 +42,52 @@ export default function RecentReviews({ initialReviews }: RecentReviewsProps) {
   if (initialReviews.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {initialReviews.map(review => (
-            <div key={review.id} className="p-1 h-full">
-                <Card className="bg-card/50 shadow-sm flex flex-col h-full">
-                    <CardHeader className="pb-3">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                            <StarRating rating={review.rating} />
-                            <span className="text-xs text-muted-foreground">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {initialReviews.map(review => {
+            const avatarUrl = `https://robohash.org/${encodeURIComponent(review.teacherName || '')}?set=set4&bgset=bg1`;
+            return (
+                <div key={review.id} className="flex flex-col">
+                    <Card className="bg-card/50 shadow-sm flex flex-col h-full overflow-hidden">
+                        <CardHeader className="p-4 bg-secondary/50">
+                            <div className="flex items-start justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10 border-2 border-primary/50">
+                                        <AvatarImage src={avatarUrl} alt={`Avatar de ${review.teacherName}`} />
+                                        <AvatarFallback>{getInitials(review.teacherName || '')}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <Link href={`/teachers/${review.teacherId}`} className="font-semibold text-foreground hover:underline">
+                                            {review.teacherName}
+                                        </Link>
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                            {review.subjectNames?.map((subjectName, index) => (
+                                                <Link href={`/subjects/${review.subjectIds?.[index]}`} key={`${review.id}-${review.subjectIds?.[index]}`}>
+                                                    <Badge variant="outline" className="text-xs">{subjectName}</Badge>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <StarRating rating={review.rating} />
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-4 flex-grow">
+                             {review.text && (
+                                <blockquote className="relative text-sm text-foreground/90 flex-grow">
+                                    <Quote className="absolute -top-2 -left-2 h-6 w-6 text-primary/20" />
+                                    <p className="pl-2 italic line-clamp-4">{review.text}</p>
+                                </blockquote>
+                            )}
+                        </CardContent>
+                        <CardFooter className="p-4 pt-0 mt-auto">
+                            <span className="text-xs text-muted-foreground w-full text-right">
                                 {formatDate(review.createdAt)}
                             </span>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="flex-grow">
-                        {review.text && (
-                            <blockquote className="relative p-4 text-sm border-l-4 border-primary/50 bg-background rounded-r-lg h-24 overflow-y-auto">
-                                <Quote className="absolute -top-2 -left-3 h-5 w-5 text-primary/50" />
-                                {review.text}
-                            </blockquote>
-                        )}
-                    </CardContent>
-                    <CardFooter className="flex-col items-start gap-4 pt-3">
-                        <div className="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                            <div className='flex items-center gap-4 flex-wrap'>
-                                <Link href={`/teachers/${review.teacherId}`} className="flex items-center gap-1.5 group" title={`Professor(a) ${review.teacherName}`}>
-                                    <User className="h-4 w-4" />
-                                    <span className="font-medium truncate group-hover:underline group-hover:text-primary">{review.teacherName}</span>
-                                </Link>
-                                <div className="flex items-center gap-1.5 flex-wrap" title={`Matérias`}>
-                                <Book className="h-4 w-4" />
-                                {review.subjectNames?.map((subjectName, index) => (
-                                    <Link href={`/subjects/${review.subjectIds?.[index]}`} key={`${review.id}-${review.subjectIds?.[index]}`}>
-                                    <Badge variant="secondary" className="hover:bg-primary/20 transition-colors">{subjectName}</Badge>
-                                    </Link>
-                                ))}
-                                </div>
-                            </div>
-                        </div>
-                    </CardFooter>
-                </Card>
-            </div>
-        ))}
+                        </CardFooter>
+                    </Card>
+                </div>
+            )
+        })}
     </div>
   );
 }
