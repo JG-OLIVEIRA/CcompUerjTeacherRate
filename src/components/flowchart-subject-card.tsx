@@ -10,9 +10,18 @@ interface FlowchartSubjectCardProps {
   className?: string;
 }
 
-// Helper function to capitalize the first letter of each word
+// Helper function to capitalize words, handling Roman numerals
 const capitalize = (str: string) => {
-  return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  const romanNumerals = ['i', 'ii', 'iii', 'iv', 'v'];
+  return str
+    .split(' ')
+    .map(word => {
+      if (romanNumerals.includes(word.toLowerCase())) {
+        return word.toUpperCase();
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
 };
 
 export default function FlowchartSubjectCard({ subjectName, isCompleted, onClick, className }: FlowchartSubjectCardProps) {
