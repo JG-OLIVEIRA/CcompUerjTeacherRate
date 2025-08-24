@@ -42,7 +42,7 @@ const AiSummaryCard = async ({ teacher }: { teacher: NonNullable<Awaited<ReturnT
           <span>Palpite do seu Veterano</span>
         </CardTitle>
         <div className="text-sm text-muted-foreground pt-1.5">
-            Uma análise espirituosa (e talvez um pouco sarcástica) das avaliações, gerada por IA.
+            Uma análise espirituosa (e talvez um pouco sarcástica) das avaliações.
         </div>
       </CardHeader>
       <CardContent>
