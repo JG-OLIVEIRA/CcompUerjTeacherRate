@@ -37,13 +37,20 @@ const dayMap: { [key: string]: string } = {
 export function formatSchedule(scheduleString: string | null | undefined): string {
     if (!scheduleString) return 'Horário a definir';
 
-    // Agrupa horários por dia. Ex: { '2': ['M1', 'M2'], '4': ['T1', 'T2'] }
+    // Ex: "2M124T3" -> ["2M124", "T3"] (errado) -> queremos ["2M124T3"]
+    // Ex: "3M34 5M34" -> ["3M34", "5M34"] (certo)
+    // O regex agora procura por um dia da semana ([2-7]) seguido por qualquer combinação de turnos e aulas.
+    const scheduleParts = scheduleString.match(/([2-7][MTN][0-9]+)/g);
+    if (!scheduleParts) return 'Horário a definir';
+
     const dailySchedules: { [key: string]: string[] } = {};
-    const scheduleParts = scheduleString.match(/([2-7])([MTN][1-6]+)/g) || [];
 
     for (const part of scheduleParts) {
         const dayCode = part[0];
-        const timeCodes = part.substring(1).match(/[MTN][1-6]/g) || [];
+        // Extrai os blocos de horário, ex: "M124" -> ["M1", "M2", "M4"]
+        const timeCodesRaw = part.substring(1); // "M124"
+        const timeCodes = timeCodesRaw.match(/[MTN][1-6]/g) || []; // ["M1", "M2", "M4"] (exemplo corrigido)
+        
         if (!dailySchedules[dayCode]) {
             dailySchedules[dayCode] = [];
         }
@@ -52,12 +59,24 @@ export function formatSchedule(scheduleString: string | null | undefined): strin
     
     const formattedDays: string[] = [];
 
-    // Processa cada dia para encontrar blocos contíguos de horário
     for (const dayCode in dailySchedules) {
         const dayName = dayMap[dayCode];
         const timeSlots = dailySchedules[dayCode];
-
+        
         if (timeSlots.length > 0) {
+            // Ordena os slots para garantir a contiguidade correta, ex: T1, M1 -> M1, T1
+            timeSlots.sort((a, b) => {
+              const aTurn = a.charAt(0);
+              const bTurn = b.charAt(0);
+              const aNum = parseInt(a.substring(1));
+              const bNum = parseInt(b.substring(1));
+
+              if (aTurn !== bTurn) {
+                return aTurn.localeCompare(bTurn);
+              }
+              return aNum - bNum;
+            });
+
             const firstSlot = timeSlotMap[timeSlots[0]];
             const lastSlot = timeSlotMap[timeSlots[timeSlots.length - 1]];
             
@@ -70,7 +89,7 @@ export function formatSchedule(scheduleString: string | null | undefined): strin
     }
 
     if (formattedDays.length === 0) {
-        return 'Horário a definir';
+        return scheduleString; // Retorna a string original se nada for formatado
     }
 
     return formattedDays.join(' | ');
@@ -78,5 +97,5 @@ export function formatSchedule(scheduleString: string | null | undefined): strin
 
 export function cleanTeacherName(name: string | undefined | null): string {
     if (!name) return '';
-    return name.replace(/ Vagas.*$/, '').trim();
+    return name.trim();
 }
