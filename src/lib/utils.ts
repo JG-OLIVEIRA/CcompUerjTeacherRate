@@ -38,16 +38,35 @@ export function formatSchedule(scheduleString: string | null | undefined): strin
   if (!scheduleString) return 'Horário a definir';
 
   // Split by potential separators like comma or space
-  const parts = scheduleString.split(/[, ]+/);
+  const parts = scheduleString.split(/[, ]+/).filter(p => p.trim() !== '');
   const formattedSchedules: string[] = [];
 
   parts.forEach(part => {
-    const dayMatch = part.match(/^[2-7]/);
-    if (!dayMatch) return;
+    // Regex to match a day code followed by time codes, e.g., "2M1M2"
+    const dayMatch = part.match(/^([2-7])([MTN][1-6]+)$/);
+    if (!dayMatch) {
+        // Fallback for parts that don't match the combined format
+        const dayCodeMatch = part.match(/^[2-7]/);
+        if (dayCodeMatch) {
+            const dayCode = dayCodeMatch[0];
+            const dayName = dayMap[dayCode];
+            const timeCodes = part.substring(1).match(/[MTN][1-6]/g);
+            if (timeCodes && timeCodes.length > 0) {
+                 const firstSlot = timeSlotMap[timeCodes[0]];
+                const lastSlot = timeSlotMap[timeCodes[timeCodes.length - 1]];
+                 if (firstSlot && lastSlot) {
+                    const startTime = firstSlot.split('-')[0];
+                    const endTime = lastSlot.split('-')[1];
+                    formattedSchedules.push(`${dayName}, ${startTime} - ${endTime}`);
+                }
+            }
+        }
+        return;
+    };
 
-    const dayCode = dayMatch[0];
+    const [, dayCode, timeBlock] = dayMatch;
     const dayName = dayMap[dayCode];
-    const timeCodes = part.substring(1).match(/[MTN][1-6]/g);
+    const timeCodes = timeBlock.match(/[MTN][1-6]/g);
 
     if (!timeCodes || timeCodes.length === 0) return;
 
