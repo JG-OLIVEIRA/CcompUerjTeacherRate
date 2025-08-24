@@ -46,7 +46,7 @@ const DemandIndicator = ({ label, requests, vacancies }: { label: string; reques
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Progress value={demand} className="h-2" indicatorClassName={demandColor} />
+                    <Progress value={Math.min(100, demand)} className="h-2" indicatorClassName={demandColor} />
                 </TooltipTrigger>
                 <TooltipContent>
                     <p>Relação candidato/vaga: {demandRatio}</p>
@@ -149,40 +149,3 @@ export default function ClassInfoCard({ classInfo, teacher }: ClassInfoCardProps
         </Card>
     );
 }
-
-// Extend Progress component to accept indicatorClassName
-declare module "@/components/ui/progress" {
-    interface ProgressProps extends React.RefAttributes<HTMLDivElement> {
-        indicatorClassName?: string;
-    }
-}
-
-// Monkey-patching Progress to allow custom indicator color
-import { Progress as OriginalProgress } from '@/components/ui/progress';
-import * as React from 'react';
-import * as ProgressPrimitive from "@radix-ui/react-progress"
-
-const PatchedProgress = React.forwardRef<
-  React.ElementRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & { indicatorClassName?: string }
->(({ className, value, indicatorClassName, ...props }, ref) => (
-  <ProgressPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
-      className
-    )}
-    {...props}
-  >
-    <ProgressPrimitive.Indicator
-      className={cn("h-full w-full flex-1 bg-primary transition-all", indicatorClassName)}
-      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-    />
-  </ProgressPrimitive.Root>
-))
-PatchedProgress.displayName = "Progress"
-
-// @ts-ignore
-OriginalProgress.render = PatchedProgress.render;
-// @ts-ignore
-OriginalProgress.displayName = PatchedProgress.displayName;
