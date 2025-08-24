@@ -122,23 +122,23 @@ export default function CourseFlowchart({ onCompletedChange }: CourseFlowchartPr
     if (remainingSemesters <= 0) return "Concluído!";
     
     const now = new Date();
-    let currentYear = now.getFullYear();
+    let year = now.getFullYear();
     // UERJ semester 1 is roughly Jan-Jul, semester 2 is Aug-Dec
-    let currentSemester = now.getMonth() < 7 ? 1 : 2; 
+    let semester = now.getMonth() < 7 ? 1 : 2;
 
-    // Calculate the number of full years and remaining semesters to add
-    const yearsToAdd = Math.floor((remainingSemesters - 1) / 2);
-    const semestersToAdd = (remainingSemesters - 1) % 2;
+    // We subtract 1 because the current semester is one of the remaining semesters.
+    let semestersToAdvance = remainingSemesters - 1;
 
-    let futureYear = currentYear + yearsToAdd;
-    let futureSemester = currentSemester + semestersToAdd;
-
-    if (futureSemester > 2) {
-      futureYear += 1;
-      futureSemester -= 2;
+    for (let i = 0; i < semestersToAdvance; i++) {
+        if (semester === 1) {
+            semester = 2;
+        } else {
+            semester = 1;
+            year += 1;
+        }
     }
     
-    return `${futureYear}.${futureSemester}`;
+    return `${year}.${semester}`;
   };
 
   const graduationForecast = getGraduationForecast();
