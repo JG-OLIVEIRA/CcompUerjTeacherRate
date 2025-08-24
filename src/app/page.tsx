@@ -45,7 +45,7 @@ export default async function TeachersPage() {
                 </Link>
             </Button>
             <Button asChild variant="outline">
-                <Link href="/grupos">
+                <Link href="https://hackmd.io/@rMoy5VzZSwKKbif_E09fBw/BJEaUJ2cT" target="_blank">
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Grupos de WhatsApp
                 </Link>
