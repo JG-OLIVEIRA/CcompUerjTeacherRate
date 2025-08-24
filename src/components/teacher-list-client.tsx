@@ -52,7 +52,7 @@ export default function TeacherListClient({ initialTeachers }: TeacherListClient
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="flex flex-col gap-3">
         {noResults ? (
              <div className="col-span-full text-center text-muted-foreground py-12 border-dashed border-2 rounded-lg">
                 <h2 className="text-xl font-semibold">Nenhum resultado encontrado para "{searchQuery}".</h2>
