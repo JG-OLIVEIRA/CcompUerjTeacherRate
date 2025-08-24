@@ -43,7 +43,6 @@ export function formatSchedule(scheduleString: string | null | undefined): strin
   parts.forEach(part => {
     const dayMatch = part.match(/^([2-7])([MTN][1-6]+)$/);
     if (!dayMatch) {
-      // If the part doesn't match the expected format, add it as is (fallback)
       if (part) formattedSchedules.push(part);
       return;
     };
@@ -63,7 +62,6 @@ export function formatSchedule(scheduleString: string | null | undefined): strin
       const existingSchedule = formattedSchedules.find(s => s.startsWith(dayName));
       
       if (existingSchedule) {
-        // This case is unlikely with the current data format but good to have
         formattedSchedules[formattedSchedules.indexOf(existingSchedule)] += ` e ${startTime} - ${endTime}`;
       } else {
         formattedSchedules.push(`${dayName}, ${startTime} - ${endTime}`);
@@ -72,4 +70,9 @@ export function formatSchedule(scheduleString: string | null | undefined): strin
   });
 
   return formattedSchedules.length > 0 ? formattedSchedules.join(' | ') : 'Horário a definir';
+}
+
+export function cleanTeacherName(name: string | undefined | null): string {
+    if (!name) return '';
+    return name.replace(/ Vagas.*$/, '').trim();
 }
