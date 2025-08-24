@@ -16,7 +16,17 @@ interface RecommendationSectionProps {
   allTeachers: Teacher[];
 }
 
+const firstSemesterSubjects = ["geometria analítica", "cálculo i", "álgebra", "matemática discreta", "fundamentos da computação"];
+
+
 export default function RecommendationSection({ allSubjects, completedSubjects, allTeachers }: RecommendationSectionProps) {
+
+  const hasCompletedFirstSemesterSubject = useMemo(() => {
+    if (completedSubjects.length === 0) return false;
+    const completedSet = new Set(completedSubjects);
+    return firstSemesterSubjects.some(subject => completedSet.has(subject));
+  }, [completedSubjects]);
+
 
   const recommendations = useMemo(() => {
     if (completedSubjects.length === 0) return [];
@@ -25,7 +35,7 @@ export default function RecommendationSection({ allSubjects, completedSubjects, 
     
     // Find all subjects that haven't been completed yet but have classes available.
     const futureSubjects = allSubjects.filter(s => 
-        !completedSet.has(s.name) && s.classes && s.classes.length > 0
+        !completedSet.has(s.name.toLowerCase()) && s.classes && s.classes.length > 0
     );
     
     const teacherSuggestions: { 
@@ -37,7 +47,7 @@ export default function RecommendationSection({ allSubjects, completedSubjects, 
     const allTeachersMap = new Map(allTeachers.map(t => [t.name.toLowerCase(), t]));
 
     futureSubjects.forEach(subject => {
-        const subjectPrereqs = prerequisites[subject.name] || [];
+        const subjectPrereqs = prerequisites[subject.name.toLowerCase()] || [];
         const prereqsMet = subjectPrereqs.every(prereq => completedSet.has(prereq));
 
         if (prereqsMet) {
@@ -75,7 +85,7 @@ export default function RecommendationSection({ allSubjects, completedSubjects, 
 
   }, [completedSubjects, allSubjects, allTeachers]);
   
-  if (completedSubjects.length === 0) {
+  if (!hasCompletedFirstSemesterSubject) {
     return null;
   }
 
