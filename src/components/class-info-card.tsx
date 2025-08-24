@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { ClassInfo, Teacher } from '@/lib/types';
