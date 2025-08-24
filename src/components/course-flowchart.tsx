@@ -21,7 +21,49 @@ const totalSubjects = flowchartData.reduce((sum, semester) => sum + semester.sub
 const AVG_SUBJECTS_PER_SEMESTER = 6;
 
 
-export const prerequisites: { [subject: string]: string[] } = {};
+export const prerequisites: { [subject: string]: string[] } = {
+    // 2nd Period
+    "Álgebra Linear": ["Geometria Analítica", "Álgebra"],
+    "Cálculo II": ["Cálculo I"],
+    "Cálculo das Probabilidades": ["Álgebra", "Cálculo I"],
+    "Algoritmos e Est. de Dados I": ["Matemática Discreta", "Fundamentos da Computação"],
+    "Linguagem de Programação I": ["Fundamentos da Computação"],
+    // 3rd Period
+    "Cálculo III": ["Cálculo II"],
+    "Algoritmos e Est. de Dados II": ["Algoritmos e Est. de Dados I"],
+    "Elementos de Lógica": ["Algoritmos e Est. de Dados I"],
+    "Linguagem de Programação II": ["Linguagem de Programação I"],
+    "Teoria da Computação": ["Linguagem de Programação I"],
+    // 4th Period
+    "Cálculo Numérico": ["Álgebra Linear", "Cálculo II"],
+    "Cálculo IV": ["Cálculo III"],
+    "Algoritmos em Grafos": ["Algoritmos e Est. de Dados II"],
+    "Engenharia de Software": ["Elementos de Lógica"],
+    "Arquitetura de Computadores I": ["Linguagem de Programação II"],
+    "Física II": ["Física I", "Teoria da Computação"],
+    // 5th Period
+    "Estruturas de Linguagens": ["Linguagem de Programação II"],
+    "Banco de Dados I": ["Algoritmos em Grafos"],
+    "Otimização em Grafos": ["Algoritmos em Grafos"],
+    "Análise e Proj. de Sistemas": ["Engenharia de Software"],
+    "Sistemas Operacionais I": ["Arquitetura de Computadores I"],
+    "Arquitetura de Computadores II": ["Arquitetura de Computadores I"],
+    // 6th Period
+    "Otimização Combinatória": ["Eletiva Básica", "Otimização em Grafos"],
+    "Banco de Dados II": ["Banco de Dados I"],
+    "Interfaces Humano-Comp.": ["Análise e Proj. de Sistemas"],
+    "Sistemas Operacionais II": ["Sistemas Operacionais I"],
+    "Compiladores": ["Estruturas de Linguagens", "Sistemas Operacionais I"],
+    // 7th Period
+    "Computação Gráfica": ["Otimização Combinatória"],
+    "Inteligência Artificial": ["Banco de Dados II"],
+    "Ética Comp. e Sociedade": ["Interfaces Humano-Comp."],
+    "Redes de Computadores I": ["Sistemas Operacionais II"],
+    "Arq. Avançadas de Computadores": ["Sistemas Operacionais II", "Compiladores"],
+    // 8th Period
+    "Projeto Final": ["Metod. Cient. no Projeto Final"],
+    "Sistemas Distribuídos": ["Redes de Computadores I"],
+};
 
 
 const LOCAL_STORAGE_KEY = 'completedSubjects';
