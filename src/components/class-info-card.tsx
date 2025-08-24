@@ -1,16 +1,20 @@
 
 'use client';
 
-import type { ClassInfo } from '@/lib/types';
+import type { ClassInfo, Teacher } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { Users, Clock, MapPin, Star, AlertCircle, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { Users, Clock, MapPin, Star, AlertCircle, TrendingUp, CheckCircle2, ChevronRightCircle } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Separator } from './ui/separator';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import StarRating from './star-rating';
 
 interface ClassInfoCardProps {
   classInfo: ClassInfo;
+  evaluatedTeacher?: Teacher;
 }
 
 const StatItem = ({ icon: Icon, label, value, tooltip }: { icon: React.ElementType, label: string, value: string | number, tooltip?: string }) => (
@@ -54,7 +58,7 @@ const DemandIndicator = ({ label, requests, vacancies }: { label: string; reques
 };
 
 
-export default function ClassInfoCard({ classInfo }: ClassInfoCardProps) {
+export default function ClassInfoCard({ classInfo, evaluatedTeacher }: ClassInfoCardProps) {
     const totalVacancies = classInfo.offered_uerj + classInfo.offered_vestibular;
     const totalOccupied = classInfo.occupied_uerj + classInfo.occupied_vestibular;
     const occupancyRate = totalVacancies > 0 ? (totalOccupied / totalVacancies) * 100 : 0;
@@ -80,9 +84,26 @@ export default function ClassInfoCard({ classInfo }: ClassInfoCardProps) {
                         </TooltipProvider>
                     )}
                 </div>
-                <CardDescription className="flex items-center gap-2 pt-1">
-                    <Users className="h-4 w-4" /> 
-                    <span>{classInfo.teacher || 'Docente a definir'}</span>
+                <CardDescription className="pt-1">
+                    <div className={cn("flex items-center gap-2 group", evaluatedTeacher && "cursor-pointer")}>
+                        <Users className="h-4 w-4" /> 
+                        {evaluatedTeacher ? (
+                             <Link href={`/teachers/${evaluatedTeacher.id}`} className="flex items-center gap-2 group-hover:underline text-foreground font-semibold">
+                                <span>{evaluatedTeacher.name}</span>
+                                <ChevronRightCircle className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity"/>
+                            </Link>
+                        ) : (
+                             <span>{classInfo.teacher || 'Docente a definir'}</span>
+                        )}
+                    </div>
+                     {evaluatedTeacher && (
+                        <div className="flex items-center gap-2 mt-2">
+                            <StarRating rating={evaluatedTeacher.averageRating || 0} />
+                            <span className="text-sm font-bold text-muted-foreground">
+                                {(evaluatedTeacher.averageRating || 0).toFixed(1)}
+                            </span>
+                        </div>
+                    )}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 flex-grow">
@@ -129,7 +150,6 @@ declare module "@/components/ui/progress" {
 
 // Monkey-patching Progress to allow custom indicator color
 import { Progress as OriginalProgress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
 import * as React from 'react';
 import * as ProgressPrimitive from "@radix-ui/react-progress"
 

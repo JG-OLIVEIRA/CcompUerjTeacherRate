@@ -147,9 +147,16 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
                             Turmas Disponíveis
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {subjectData.classes.map(classInfo => (
-                                <ClassInfoCard key={classInfo.id} classInfo={classInfo} />
-                            ))}
+                            {subjectData.classes.map(classInfo => {
+                                const evaluatedTeacher = teachers.find(t => t.name === classInfo.teacher);
+                                return (
+                                    <ClassInfoCard 
+                                        key={classInfo.id} 
+                                        classInfo={classInfo}
+                                        evaluatedTeacher={evaluatedTeacher}
+                                    />
+                                );
+                            })}
                         </div>
                     </>
                 )}
