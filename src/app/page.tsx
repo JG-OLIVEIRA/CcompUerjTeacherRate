@@ -1,5 +1,5 @@
 
-import { BookOpen, Megaphone, ShieldCheck, MessageSquareQuote, Info } from 'lucide-react';
+import { BookOpen, Megaphone, ShieldCheck, MessageSquareQuote, Info, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { getTeachersWithGlobalStats, getRecentReviews, getPlatformStats, getAllSubjectNames } from '@/lib/data-service';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,12 @@ export default async function TeachersPage() {
                 <Link href="/subjects">
                     <BookOpen className="mr-2 h-4 w-4" />
                     Ver por Matéria
+                </Link>
+            </Button>
+            <Button asChild variant="outline">
+                <Link href="/grupos">
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Grupos de WhatsApp
                 </Link>
             </Button>
         </div>
