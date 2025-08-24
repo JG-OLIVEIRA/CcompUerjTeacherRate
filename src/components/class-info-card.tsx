@@ -73,9 +73,7 @@ export default function ClassInfoCard({ classInfo, teacher }: ClassInfoCardProps
     return (
         <Card className="flex flex-col bg-card/50">
             <CardHeader>
-                <div className="flex justify-between items-start gap-2">
-                    <CardTitle>Turma {classInfo.number}</CardTitle>
-                </div>
+                <CardTitle>Turma {classInfo.number}</CardTitle>
                 <CardDescription className="pt-1">
                     <div className="flex items-center gap-2 group">
                         <Users className="h-4 w-4" /> 
