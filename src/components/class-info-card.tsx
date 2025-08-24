@@ -72,6 +72,8 @@ export default function ClassInfoCard({ classInfo, evaluatedTeacher }: ClassInfo
         return name;
     }
 
+    const teacherNameToDisplay = cleanTeacherName(classInfo.teacher);
+
     return (
         <Card className="flex flex-col bg-card/50">
             <CardHeader>
@@ -98,11 +100,11 @@ export default function ClassInfoCard({ classInfo, evaluatedTeacher }: ClassInfo
                         <Users className="h-4 w-4" /> 
                         {evaluatedTeacher ? (
                              <Link href={`/teachers/${evaluatedTeacher.id}`} className="flex items-center gap-2 group-hover:underline text-foreground font-semibold">
-                                <span>{evaluatedTeacher.name}</span>
+                                <span>{teacherNameToDisplay}</span>
                                 <ChevronRightCircle className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity"/>
                             </Link>
                         ) : (
-                             <span>{cleanTeacherName(classInfo.teacher)}</span>
+                             <span>{teacherNameToDisplay}</span>
                         )}
                     </div>
                      {evaluatedTeacher && (

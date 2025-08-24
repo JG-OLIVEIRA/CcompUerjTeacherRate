@@ -35,6 +35,15 @@ const calculateAverageRating = (reviews: Review[]): number => {
     return total / validReviews.length;
 };
 
+const cleanTeacherName = (name: string | undefined): string => {
+    if (!name) return '';
+    const vagasIndex = name.indexOf('Vagas');
+    if (vagasIndex !== -1) {
+        return name.substring(0, vagasIndex).trim();
+    }
+    return name;
+}
+
 // Componente de página com a tipagem corrigida
 export default async function SubjectProfilePage({ params }: SubjectProfilePageProps) {
   const subjectId = parseInt(params.subjectId, 10);
@@ -148,7 +157,8 @@ export default async function SubjectProfilePage({ params }: SubjectProfilePageP
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {subjectData.classes.map(classInfo => {
-                                const evaluatedTeacher = teachers.find(t => t.name === classInfo.teacher);
+                                const cleanedTeacherName = cleanTeacherName(classInfo.teacher);
+                                const evaluatedTeacher = teachers.find(t => t.name === cleanedTeacherName);
                                 return (
                                     <ClassInfoCard 
                                         key={classInfo.id} 
