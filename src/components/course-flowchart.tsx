@@ -12,8 +12,8 @@ const flowchartData = [
     { semester: 3, subjects: ["Português Instrumental", "Cálculo III", "Algoritmos e Estruturas de Dados II", "Elementos de Lógica", "Linguagem de Programação II", "Teoria da Computação"] },
     { semester: 4, subjects: ["Cálculo Numérico", "Cálculo IV", "Algoritmos em Grafos", "Engenharia de Software", "Arquitetura de Computadores I", "Física II"] },
     { semester: 5, subjects: ["Estruturas de Linguagens", "Banco de Dados I", "Otimização em Grafos", "Análise e Projeto de Sistemas", "Sistemas Operacionais I", "Arquitetura de Computadores II", "Eletiva Básica"] },
-    { semester: 6, subjects: ["Otimização Combinatória", "Banco de Dados II", "Interfaces Humano-Comp.", "Eletiva I", "Sistemas Operacionais II", "Compiladores"] },
-    { semester: 7, subjects: ["Computação Gráfica", "Inteligência Artificial", "Ética Comp. e Sociedade", "Metod. Cient. no Projeto Final", "Redes de Computadores I", "Arq. Avançadas de Computadores"] },
+    { semester: 6, subjects: ["Otimização Combinatória", "Banco de Dados II", "Interfaces Humano-Computador", "Eletiva I", "Sistemas Operacionais II", "Compiladores"] },
+    { semester: 7, subjects: ["Computação Gráfica", "Inteligência Artificial", "Ética Computacional e Sociedade", "Metodologia Científica no Projeto Final", "Redes de Computadores I", "Arquiteturas Avançadas de Computadores"] },
     { semester: 8, subjects: ["Eletiva II", "Eletiva III", "Projeto Final", "Sistemas Distribuídos", "Eletiva IV"] },
 ];
 
@@ -51,17 +51,17 @@ export const prerequisites: { [subject: string]: string[] } = {
     // 6th Period
     "Otimização Combinatória": ["Eletiva Básica", "Otimização em Grafos"],
     "Banco de Dados II": ["Banco de Dados I"],
-    "Interfaces Humano-Comp.": ["Análise e Projeto de Sistemas"],
+    "Interfaces Humano-Computador": ["Análise e Projeto de Sistemas"],
     "Sistemas Operacionais II": ["Sistemas Operacionais I"],
     "Compiladores": ["Estruturas de Linguagens", "Sistemas Operacionais I"],
     // 7th Period
     "Computação Gráfica": ["Otimização Combinatória"],
     "Inteligência Artificial": ["Banco de Dados II"],
-    "Ética Comp. e Sociedade": ["Interfaces Humano-Comp."],
+    "Ética Computacional e Sociedade": ["Interfaces Humano-Computador"],
     "Redes de Computadores I": ["Sistemas Operacionais II"],
-    "Arq. Avançadas de Computadores": ["Sistemas Operacionais II", "Compiladores"],
+    "Arquiteturas Avançadas de Computadores": ["Sistemas Operacionais II", "Compiladores"],
     // 8th Period
-    "Projeto Final": ["Metod. Cient. no Projeto Final"],
+    "Projeto Final": ["Metodologia Científica no Projeto Final"],
     "Sistemas Distribuídos": ["Redes de Computadores I"],
 };
 

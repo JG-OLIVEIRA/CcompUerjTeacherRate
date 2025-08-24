@@ -39,7 +39,7 @@ export const whatsappLinks: Record<string, string[]> = {
     "https://chat.whatsapp.com/IlgElCQuSxC16S5t46NJwk",
     "https://chat.whatsapp.com/IFjPx6pJCbAAnryUAY1OP7",
   ],
-  "Arq. Avançadas de Computadores": [
+  "Arquiteturas Avançadas de Computadores": [
     "https://chat.whatsapp.com/CyBiLkby3g4E7t00HEU72R",
     "https://chat.whatsapp.com/CBsEmtIllEsLgNK8hVIIDO",
   ],
@@ -96,7 +96,7 @@ export const whatsappLinks: Record<string, string[]> = {
     "https://chat.whatsapp.com/FtJ7sMw1XcQJ9kmhGQqdv7",
     "https://chat.whatsapp.com/D7duUbHUcsWFrqheN01WWm",
   ],
-  "Ética Comp. e Sociedade": [
+  "Ética Computacional e Sociedade": [
     "https://chat.whatsapp.com/LVWmY6tflJR9SKanw5rFw9",
   ],
   "Física I": [
@@ -121,7 +121,7 @@ export const whatsappLinks: Record<string, string[]> = {
   "Inteligência Artificial": [
     "https://chat.whatsapp.com/KST1SqPH9MmGdnmIjTxlBA",
   ],
-  "Interfaces Humano-Comp.": [
+  "Interfaces Humano-Computador": [
     "https://chat.whatsapp.com/JFhgZ6zvHkBA1vYtvNVhtq",
   ],
   "Linguagem de Programação I": [
@@ -137,7 +137,7 @@ export const whatsappLinks: Record<string, string[]> = {
   "Matemática Discreta": [
     "https://chat.whatsapp.com/GQa7B2oDPSt0wM1i1ERShK",
   ],
-  "Metod. Cient. no Projeto Final": [
+  "Metodologia Científica no Projeto Final": [
     "https://chat.whatsapp.com/JZXemZeTwbQHPolMhomAfv",
   ],
   "Otimização Combinatória": [
