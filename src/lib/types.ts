@@ -44,6 +44,7 @@ export interface ClassInfo {
   request_vestibular_offered: number;
   request_vestibular_total: number;
   request_vestibular_preferential: number;
+  location?: string;
 }
 
 
@@ -53,6 +54,7 @@ export interface Subject {
   iconName: string;
   teachers: Teacher[];
   classes?: ClassInfo[];
+  period?: number;
 }
 
 export interface SubjectLink {
