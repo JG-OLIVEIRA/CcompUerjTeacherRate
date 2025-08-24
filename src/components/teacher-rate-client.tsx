@@ -33,11 +33,20 @@ export default function TeacherRateClient({ initialSubjectsData, allTeachers }: 
   const groupedSubjects = useMemo(() => {
     const groups: { [key: string]: Subject[] } = {};
     filteredSubjects.forEach(subject => {
-        const semester = subjectToSemesterMap[subject.name] || 'Outras';
-        if (!groups[semester]) {
-            groups[semester] = [];
+        // Correctly handle casing to match the map keys
+        const formattedSubjectName = subject.name
+          .toLowerCase()
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+
+        const semester = subjectToSemesterMap[formattedSubjectName] || 'Outras';
+        const key = semester.toString();
+
+        if (!groups[key]) {
+            groups[key] = [];
         }
-        groups[semester].push(subject);
+        groups[key].push(subject);
     });
      return Object.entries(groups).sort(([a], [b]) => {
         if (a === 'Outras') return 1;
