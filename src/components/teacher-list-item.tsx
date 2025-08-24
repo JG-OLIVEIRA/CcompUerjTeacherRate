@@ -24,6 +24,7 @@ const getInitials = (name: string) => {
 export default function TeacherListItem({ teacher }: TeacherListItemProps) {
   const { id, name, averageRating = 0, reviews } = teacher;
   const totalReviewCount = reviews.length;
+  const avatarUrl = `https://robohash.org/${encodeURIComponent(name)}?set=set4&bgset=bg1`;
 
   return (
     <Link 
@@ -34,7 +35,7 @@ export default function TeacherListItem({ teacher }: TeacherListItemProps) {
         )}
     >
         <Avatar className="h-12 w-12 text-lg">
-            <AvatarImage src={`https://i.imgur.com/8l5d5Am.png`} alt={`Foto de ${name}`} />
+            <AvatarImage src={avatarUrl} alt={`Foto de ${name}`} />
             <AvatarFallback className="bg-secondary text-secondary-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                 {getInitials(name)}
             </AvatarFallback>
