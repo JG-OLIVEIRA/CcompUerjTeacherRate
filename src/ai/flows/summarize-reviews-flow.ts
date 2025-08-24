@@ -11,7 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type {Review} from '@/lib/types';
-import { gemini15Flash, type SafetySetting } from '@genkit-ai/googleai';
+import { gemini15Flash } from '@genkit-ai/googleai';
 
 // Define the structure of a single review for the AI prompt
 const ReviewSchema = z.object({
@@ -77,7 +77,7 @@ const summarizeReviewsFlow = ai.defineFlow(
   async input => {
     // Set a lower safety threshold to allow for more "sarcastic" and "witty" responses
     // without being overly offensive.
-    const customSafetyConfig: { safetySettings: SafetySetting[] } = {
+    const customSafetyConfig = {
         safetySettings: [
             { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
             { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
