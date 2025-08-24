@@ -117,6 +117,31 @@ export default function CourseFlowchart({ onCompletedChange }: CourseFlowchartPr
   
   const remainingSubjects = totalSubjects - completedSubjects.size;
   const remainingSemesters = Math.ceil(remainingSubjects / AVG_SUBJECTS_PER_SEMERTER);
+  
+  const getGraduationForecast = (): string => {
+    if (remainingSemesters <= 0) return "Concluído!";
+    
+    const now = new Date();
+    let currentYear = now.getFullYear();
+    // UERJ semester 1 is roughly Jan-Jul, semester 2 is Aug-Dec
+    let currentSemester = now.getMonth() < 7 ? 1 : 2; 
+
+    // Calculate the number of full years and remaining semesters to add
+    const yearsToAdd = Math.floor((remainingSemesters - 1) / 2);
+    const semestersToAdd = (remainingSemesters - 1) % 2;
+
+    let futureYear = currentYear + yearsToAdd;
+    let futureSemester = currentSemester + semestersToAdd;
+
+    if (futureSemester > 2) {
+      futureYear += 1;
+      futureSemester -= 2;
+    }
+    
+    return `${futureYear}.${futureSemester}`;
+  };
+
+  const graduationForecast = getGraduationForecast();
 
   return (
     <Card className="w-full mb-6 bg-secondary/50 border-primary/20">
@@ -146,7 +171,7 @@ export default function CourseFlowchart({ onCompletedChange }: CourseFlowchartPr
                         <CalendarClock className='h-4 w-4 text-primary' />
                         <span className='font-medium'>Previsão de Formatura:</span>
                     </div>
-                     <span className='font-bold text-base'>{remainingSemesters} {remainingSemesters === 1 ? 'período' : 'períodos'}</span>
+                     <span className='font-bold text-base'>{graduationForecast}</span>
                 </div>
             </div>
         </div>
