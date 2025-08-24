@@ -155,7 +155,7 @@ const flowchartData = [
     { semester: 4, subjects: ["cálculo numérico", "cálculo iv", "algoritmos em grafos", "engenharia de software", "arquitetura de computadores i", "física ii"] },
     { semester: 5, subjects: ["estruturas de linguagens", "banco de dados i", "otimização em grafos", "análise e projeto de sistemas", "sistemas operacionais i", "arquitetura de computadores ii", "eletiva básica"] },
     { semester: 6, subjects: ["otimização combinatória", "banco de dados ii", "interfaces humano-computador", "eletiva i", "sistemas operacionais ii", "compiladores"] },
-    { semester: 7, subjects: ["computação gráfica", "inteligência artificial", "ética computacional e sociedade", "metodologia científica no projeto final", "redes de computadores i", "arquiteturas avançadas de computadores"] },
+    { semester: 7, subjects: ["computação gráfica", "inteligência artificial", "ética, computadores e sociedade", "metodologia científica no projeto final", "redes de computadores i", "arquiteturas avançadas de computadores"] },
     { semester: 8, subjects: ["eletiva ii", "eletiva iii", "projeto final", "sistemas distribuídos", "eletiva iv"] },
 ];
 
