@@ -8,7 +8,7 @@ import { Lightbulb, Star, Users } from 'lucide-react';
 import { Badge } from './ui/badge';
 import Link from 'next/link';
 import { prerequisites } from './course-flowchart';
-import { cleanTeacherName } from '@/lib/utils';
+import { cleanTeacherName, capitalizeTeacherName } from '@/lib/utils';
 
 interface RecommendationSectionProps {
   allSubjects: Subject[];
@@ -132,7 +132,7 @@ export default function RecommendationSection({ allSubjects, completedSubjects, 
                             <div className="text-xs text-muted-foreground mt-1 mb-2 space-y-1">
                                 <div className="flex items-center justify-center gap-1.5">
                                     <Users className="h-3 w-3" />
-                                    <span className="text-primary font-medium truncate">{teacher.name}</span>
+                                    <span className="text-primary font-medium truncate">{capitalizeTeacherName(teacher.name)}</span>
                                 </div>
                                 {teacher.averageRating !== undefined && teacher.averageRating > 0 && (
                                     <Badge variant="outline" className="text-xs">

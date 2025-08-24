@@ -148,6 +148,23 @@ export function cleanTeacherName(name: string | undefined | null): string {
     return name.trim();
 }
 
+// Capitalizes teacher names from ALL CAPS to Title Case, handling common Brazilian prepositions.
+export function capitalizeTeacherName(name: string): string {
+  if (!name) return '';
+  const lowerCaseName = name.toLowerCase();
+  const exceptions = ['de', 'da', 'do', 'dos', 'das'];
+  return lowerCaseName
+    .split(' ')
+    .map((word, index) => {
+      if (index > 0 && exceptions.includes(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
+
+
 const flowchartData = [
     { semester: 1, subjects: ["geometria analítica", "cálculo i", "álgebra", "matemática discreta", "fundamentos da computação"] },
     { semester: 2, subjects: ["álgebra linear", "cálculo ii", "cálculo das probabilidades", "algoritmos e estruturas de dados i", "linguagem de programação i", "física i"] },
