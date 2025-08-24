@@ -1,5 +1,4 @@
 
-
 /**
  * @file data-service.ts
  * 
@@ -35,25 +34,25 @@ export async function getSubjects(): Promise<Subject[]> {
     try {
         // Step 1: Get distinct discipline names from the classes table as the source of truth
         const availableSubjectsResult = await client.query('SELECT DISTINCT discipline_name FROM classes ORDER BY discipline_name;');
-        const availableSubjectNames = new Set(availableSubjectsResult.rows.map(row => row.discipline_name));
+        const availableSubjectNames = new Set(availableSubjectsResult.rows.map(row => row.discipline_name.trim().toLowerCase()));
 
         // Step 2: Get all subjects from the subjects table to have their IDs
         const allSubjectsResult = await client.query('SELECT id, name FROM subjects;');
-        const subjectNameToIdMap = new Map<string, number>();
+        const subjectNameToIdMap = new Map<string, { id: number, originalName: string }>();
         allSubjectsResult.rows.forEach(row => {
-            subjectNameToIdMap.set(row.name, row.id);
+            subjectNameToIdMap.set(row.name.trim().toLowerCase(), { id: row.id, originalName: row.name });
         });
 
         // Step 3: Create the initial map of subjects that are actually available
         const subjectsMap: Map<number, Subject> = new Map();
-        availableSubjectNames.forEach(name => {
-            const id = subjectNameToIdMap.get(name);
+        availableSubjectNames.forEach(nameLC => {
+            const subjectInfo = subjectNameToIdMap.get(nameLC);
             // Only add subjects that exist in both tables to avoid inconsistencies
-            if (id) {
-                subjectsMap.set(id, {
-                    id: id,
-                    name: name,
-                    iconName: assignIconName(name),
+            if (subjectInfo) {
+                subjectsMap.set(subjectInfo.id, {
+                    id: subjectInfo.id,
+                    name: subjectInfo.originalName,
+                    iconName: assignIconName(subjectInfo.originalName),
                     teachers: [],
                 });
             }
@@ -727,3 +726,5 @@ export async function getPlatformStats(): Promise<{ totalTeachers: number; total
         client.release();
     }
 }
+
+    
