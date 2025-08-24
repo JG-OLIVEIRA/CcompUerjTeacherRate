@@ -33,26 +33,45 @@ const calculateAverageRating = (reviews: Review[]): number => {
 export async function getSubjects(): Promise<Subject[]> {
     const client = await pool.connect();
     try {
-        // Step 1: Use `classes` as the source of truth for available subjects.
-        const availableSubjectsResult = await client.query('SELECT DISTINCT discipline_name FROM classes ORDER BY discipline_name;');
-        const subjectsMap: Map<string, Subject> = new Map(); // Key is lower-case discipline name
+        const subjectsMap: Map<string, Subject> = new Map();
 
-        // Step 2: Populate the initial subjects list from `classes`.
+        // Step 1: Use `classes` as the source of truth for available subjects and their periods.
+        const availableSubjectsResult = await client.query('SELECT DISTINCT discipline_name FROM classes ORDER BY discipline_name;');
+        
         for (const row of availableSubjectsResult.rows) {
-            const subjectName = row.discipline_name.trim();
-            const subjectNameLC = subjectName.toLowerCase();
-            if (!subjectsMap.has(subjectNameLC)) {
-                subjectsMap.set(subjectNameLC, {
-                    // Temporarily use a placeholder ID like the index or a hash. The real ID will come from the subjects table.
+            const rawDisciplineName = row.discipline_name.trim();
+            // Expected format: "11124 - CÁLCULO I"
+            const match = rawDisciplineName.match(/^(\d+)\s*-\s*(.+)$/);
+            
+            if (match) {
+                const code = match[1];
+                const subjectName = match[2].trim();
+                const subjectNameLC = subjectName.toLowerCase();
+
+                // The first digit of the code determines the period.
+                const period = parseInt(code.charAt(0), 10);
+
+                if (!subjectsMap.has(subjectNameLC)) {
+                    subjectsMap.set(subjectNameLC, {
+                        id: subjectsMap.size + 1, // Placeholder ID
+                        name: subjectName,
+                        iconName: assignIconName(subjectName),
+                        teachers: [],
+                        period: isNaN(period) ? undefined : period,
+                    });
+                }
+            } else if (!subjectsMap.has(rawDisciplineName.toLowerCase())) {
+                 // Fallback for names that don't match the "CODE - NAME" format
+                 subjectsMap.set(rawDisciplineName.toLowerCase(), {
                     id: subjectsMap.size + 1,
-                    name: subjectName,
-                    iconName: assignIconName(subjectName),
+                    name: rawDisciplineName,
+                    iconName: assignIconName(rawDisciplineName),
                     teachers: [],
                 });
             }
         }
         
-        // Step 3: Get subject IDs from the `subjects` table and update the map.
+        // Step 2: Get subject IDs from the `subjects` table and update the map.
         const allSubjectsResult = await client.query('SELECT id, name FROM subjects;');
         for (const row of allSubjectsResult.rows) {
             const subjectName = row.name.trim();
@@ -89,7 +108,6 @@ export async function getSubjects(): Promise<Subject[]> {
 
         for (const row of dataResult.rows) {
             const subjectNameLC = row.subject_name.trim().toLowerCase();
-            // Only process data for subjects that are available
             const subject = subjectsMap.get(subjectNameLC);
             if (!subject) continue;
 
@@ -733,5 +751,3 @@ export async function getPlatformStats(): Promise<{ totalTeachers: number; total
         client.release();
     }
 }
-
-    
