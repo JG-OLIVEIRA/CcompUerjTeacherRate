@@ -7,7 +7,6 @@ import CourseFlowchart from './course-flowchart';
 import RecommendationSection from './recommendation-section';
 import { Input } from './ui/input';
 import { Search, BookOpen } from 'lucide-react';
-import { Accordion } from './ui/accordion';
 import SubjectSection from './subject-section';
 
 // Mapeamento de disciplinas para períodos.
@@ -86,11 +85,11 @@ export default function TeacherRateClient({ initialSubjectsData, allTeachers }: 
                         <h3 className="text-xl font-semibold mb-3 pl-2 border-l-4 border-primary">
                             {parseInt(semester) <= 8 ? `${semester}º Período` : 'Outras'}
                         </h3>
-                        <Accordion type="multiple" className="space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {subjects.map(subject => (
                                 <SubjectSection key={subject.id} subject={subject} />
                             ))}
-                        </Accordion>
+                        </div>
                     </div>
                 ))}
             </div>
