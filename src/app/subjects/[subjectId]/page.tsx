@@ -42,38 +42,34 @@ const calculateAverageRating = (reviews: Review[]): number => {
 // It can now return an array of teachers if multiple are found.
 const findMatchingTeachers = (className: string, allTeachers: Teacher[]): Teacher[] => {
     if (!className) return [];
-    
+
     const cleanedClassName = cleanTeacherName(className).toLowerCase();
-    const potentialTeacherNames = cleanedClassName.split(' e '); // Assuming ' e ' is a separator for now
-
     const foundTeachers: Teacher[] = [];
-    const allTeachersLowerMap = new Map(allTeachers.map(t => [t.name.toLowerCase(), t]));
 
-    // Attempt to find teachers based on the combined string first, and split parts
-    for (const namePart of potentialTeacherNames) {
-        if (allTeachersLowerMap.has(namePart)) {
-            foundTeachers.push(allTeachersLowerMap.get(namePart)!);
-        } else {
-             // If not a direct match, check if the class name contains a teacher's full name
-            for (const teacher of allTeachers) {
-                if (cleanedClassName.includes(teacher.name.toLowerCase())) {
-                    if (!foundTeachers.some(ft => ft.id === teacher.id)) {
-                        foundTeachers.push(teacher);
-                    }
-                }
-            }
+    // First, try a direct match for the entire string (e.g., "Fabiano de Souza Oliveira e Luerbio Faria")
+    const directMatch = allTeachers.find(t => t.name.toLowerCase() === cleanedClassName);
+    if (directMatch) {
+        return [directMatch];
+    }
+
+    // If no direct match, check if any teacher's full name is contained within the class name string.
+    for (const teacher of allTeachers) {
+        if (cleanedClassName.includes(teacher.name.toLowerCase())) {
+            foundTeachers.push(teacher);
         }
     }
 
-    // A simple heuristic to avoid adding sub-names (e.g., adding "LUERBIO FARIA" if "FABIANO... LUERBIO FARIA" is already found)
+    // A heuristic to avoid adding sub-names (e.g., adding "LUERBIO" if "LUERBIO FARIA" is already found)
     if (foundTeachers.length > 1) {
+        // Sort by name length descending to process longer names first
         const sortedByLength = [...foundTeachers].sort((a, b) => b.name.length - a.name.length);
         const uniqueTeachers = new Set<Teacher>();
-        let currentNames = "";
+        let coveredNames = "";
+
         for (const teacher of sortedByLength) {
-            if (!currentNames.includes(teacher.name.toLowerCase())) {
+            if (!coveredNames.includes(teacher.name.toLowerCase())) {
                 uniqueTeachers.add(teacher);
-                currentNames += teacher.name.toLowerCase();
+                coveredNames += teacher.name.toLowerCase() + " "; // Add space to avoid partial matching issues
             }
         }
         return Array.from(uniqueTeachers);
